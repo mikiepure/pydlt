@@ -17,7 +17,7 @@ class StandardHeader:
     """The Standard Header of a DLT Message."""
 
     # length of the bytes data
-    _DATA_MIN_LENGTH = 4
+    DATA_MIN_LENGTH = 4
 
     # bit masks to get/set values in Header Type
     USE_EXTENDED_HEADER_MASK = 0b00000001
@@ -27,8 +27,10 @@ class StandardHeader:
     WITH_TIMESTAMP_MASK = 0b00010000
     VERSION_NUMBER_MASK = 0b11100000
 
+    _VERSION_NUMBER_SHIFT = 5
+
     # struct format for pack/unpack
-    _STRUCT_MIN_FORMAT = ">BBH"
+    STRUCT_MIN_FORMAT = ">BBH"
 
     def __init__(
         self,
@@ -79,10 +81,10 @@ class StandardHeader:
         """
         # validate arguments
         data_length = len(data)
-        if data_length < cls._DATA_MIN_LENGTH:
+        if data_length < cls.DATA_MIN_LENGTH:
             raise ValueError(
                 f"Unexpected length of the data: {data_length} / "
-                f"Standard Header must be {cls._DATA_MIN_LENGTH} or more"
+                f"Standard Header must be {cls.DATA_MIN_LENGTH} or more"
             )
 
         # get header type
@@ -91,11 +93,11 @@ class StandardHeader:
         weid = bool(data[0] & cls.WITH_ECU_ID_MASK)
         wsid = bool(data[0] & cls.WITH_SESSION_ID_MASK)
         wtms = bool(data[0] & cls.WITH_TIMESTAMP_MASK)
-        vers = int((data[0] & cls.VERSION_NUMBER_MASK) >> 5)
+        vers = int((data[0] & cls.VERSION_NUMBER_MASK) >> cls._VERSION_NUMBER_SHIFT)
 
         # validate data
-        unpack_format = cls._STRUCT_MIN_FORMAT
-        expected_data_length = cls._DATA_MIN_LENGTH
+        unpack_format = cls.STRUCT_MIN_FORMAT
+        expected_data_length = cls.DATA_MIN_LENGTH
         if weid:
             expected_data_length += 4
             unpack_format += "4s"
@@ -139,7 +141,7 @@ class StandardHeader:
             bytes: Converted data bytes
         """
         data = struct.pack(
-            self._STRUCT_MIN_FORMAT, self.header_type, self.message_counter, self.length
+            self.STRUCT_MIN_FORMAT, self.header_type, self.message_counter, self.length
         )
         # with_ecu_id is not used to avoid False Positive error of PyRights
         if self.ecu_id is not None:
@@ -157,7 +159,7 @@ class StandardHeader:
         Returns:
             int: Length of the data bytes
         """
-        length = self._DATA_MIN_LENGTH
+        length = self.DATA_MIN_LENGTH
         if self.with_ecu_id:
             length += 4
         if self.with_session_id:
@@ -173,7 +175,7 @@ class StandardHeader:
         Returns:
             int: Header Type
         """
-        htyp = self.version_number << 5
+        htyp = self.version_number << self._VERSION_NUMBER_SHIFT
         if self.use_extended_header:
             htyp |= self.USE_EXTENDED_HEADER_MASK
         if self.msb_first:
@@ -284,15 +286,18 @@ class ExtendedHeader:
     """The Extended Header of a DLT Message."""
 
     # length of the bytes data
-    _DATA_LENGTH = 10
+    DATA_LENGTH = 10
 
     # bit masks to get/set values in Message Info
-    _VERBOSE_MASK = 0b00000001
-    _MESSAGE_TYPE_MASK = 0b00001110
-    _MESSAGE_TYPE_INFO_MASK = 0b11110000
+    VERBOSE_MASK = 0b00000001
+    MESSAGE_TYPE_MASK = 0b00001110
+    MESSAGE_TYPE_INFO_MASK = 0b11110000
+
+    _MESSAGE_TYPE_SHIFT = 1
+    _MESSAGE_TYPE_INFO_SHIFT = 4
 
     # struct format for pack/unpack
-    _STRUCT_FORMAT = ">BB4s4s"
+    STRUCT_FORMAT = ">BB4s4s"
 
     def __init__(
         self,
@@ -337,18 +342,18 @@ class ExtendedHeader:
         """
         # validate arguments
         data_length = len(data)
-        if data_length < cls._DATA_LENGTH:
+        if data_length < cls.DATA_LENGTH:
             raise ValueError(
                 f"Unexpected length of the data: {data_length} / "
-                f"Extended Header must be {cls._DATA_LENGTH} or more"
+                f"Extended Header must be {cls.DATA_LENGTH} or more"
             )
 
         # parse bytes
-        entries = struct.unpack_from(cls._STRUCT_FORMAT, data)
+        entries = struct.unpack_from(cls.STRUCT_FORMAT, data)
         msin = entries[0]
-        verb = bool(msin & cls._VERBOSE_MASK)
-        mstp = (msin & cls._MESSAGE_TYPE_MASK) >> 1
-        mtin = (msin & cls._MESSAGE_TYPE_INFO_MASK) >> 4
+        verb = bool(msin & cls.VERBOSE_MASK)
+        mstp = (msin & cls.MESSAGE_TYPE_MASK) >> cls._MESSAGE_TYPE_SHIFT
+        mtin = (msin & cls.MESSAGE_TYPE_INFO_MASK) >> cls._MESSAGE_TYPE_INFO_SHIFT
         noar = entries[1]
         apid = _ascii_decode(entries[2])
         ctid = _ascii_decode(entries[3])
@@ -363,11 +368,13 @@ class ExtendedHeader:
         """
         msin = 0
         if self.verbose:
-            msin |= self._VERBOSE_MASK
-        msin |= (self.message_type << 1) & self._MESSAGE_TYPE_MASK
-        msin |= (self.message_type_info << 4) & self._MESSAGE_TYPE_INFO_MASK
+            msin |= self.VERBOSE_MASK
+        msin |= (self.message_type << self._MESSAGE_TYPE_SHIFT) & self.MESSAGE_TYPE_MASK
+        msin |= (
+            self.message_type_info << self._MESSAGE_TYPE_INFO_SHIFT
+        ) & self.MESSAGE_TYPE_INFO_MASK
         return struct.pack(
-            self._STRUCT_FORMAT,
+            self.STRUCT_FORMAT,
             msin,
             self.number_of_arguments,
             _ascii_encode(self.application_id),
@@ -381,7 +388,7 @@ class ExtendedHeader:
         Returns:
             int: Length of the data bytes
         """
-        return self._DATA_LENGTH
+        return self.DATA_LENGTH
 
     @property
     def message_log_info(self) -> MessageLogInfo:
@@ -440,13 +447,13 @@ class StorageHeader:
     """The Storage Header of a DLT Message."""
 
     # length of the bytes data
-    _DATA_LENGTH = 16
+    DATA_LENGTH = 16
 
     # "DLT"+0x01
-    _DLT_PATTERN = b"\x44\x4C\x54\x01"
+    DLT_PATTERN = b"\x44\x4C\x54\x01"
 
     # struct format for pack/unpack
-    _STRUCT_FORMAT = "<Ii4s"
+    STRUCT_FORMAT = "<Ii4s"
 
     def __init__(self, seconds: int, microseconds: int, ecu_id: str) -> None:
         """Create StorageHeader object.
@@ -475,20 +482,20 @@ class StorageHeader:
         """
         # validate arguments
         data_length = len(data)
-        if data_length < cls._DATA_LENGTH:
+        if data_length < cls.DATA_LENGTH:
             raise ValueError(
                 f"Unexpected length of the data: {data_length} / "
-                f"Storage Header must be {cls._DATA_LENGTH} or more"
+                f"Storage Header must be {cls.DATA_LENGTH} or more"
             )
 
         # parse bytes
         dlt_pattern = data[:4]
-        if dlt_pattern != cls._DLT_PATTERN:
+        if dlt_pattern != cls.DLT_PATTERN:
             raise ValueError(
                 f"DLT-Pattern is not found in the data: {dlt_pattern} / "
-                f"Beginning of Storage Header must be {cls._DLT_PATTERN}"
+                f"Beginning of Storage Header must be {cls.DLT_PATTERN}"
             )
-        entries = struct.unpack_from(cls._STRUCT_FORMAT, data, 4)
+        entries = struct.unpack_from(cls.STRUCT_FORMAT, data, 4)
         seconds = entries[0]
         microseconds = entries[1]
         ecu_id = _ascii_decode(entries[2])
@@ -501,8 +508,8 @@ class StorageHeader:
         Returns:
             bytes: Converted data bytes
         """
-        return self._DLT_PATTERN + struct.pack(
-            self._STRUCT_FORMAT,
+        return self.DLT_PATTERN + struct.pack(
+            self.STRUCT_FORMAT,
             self.seconds,
             self.microseconds,
             _ascii_encode(self.ecu_id),
@@ -515,7 +522,7 @@ class StorageHeader:
         Returns:
             int: Length of the data bytes
         """
-        return self._DATA_LENGTH
+        return self.DATA_LENGTH
 
 
 def _ascii_decode(ascii: bytes) -> str:

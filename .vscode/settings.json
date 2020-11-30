@@ -1,0 +1,13 @@
+{
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": true,
+  "[python]": {
+    "files.insertFinalNewline": true,
+    "editor.rulers": [88],
+    "editor.formatOnType": true,
+    "editor.formatOnSave": true
+  },
+  "python.formatting.provider": "black",
+  "python.venvPath": "./"
+}

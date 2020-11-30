@@ -30,7 +30,7 @@ TEST_RESULTS_DIR_PATH = CURRENT_DIR_PATH / "results"
 TEST_RESULTS_DIR_PATH.mkdir(exist_ok=True)
 
 
-def test_dlt_std_header():
+def test_message_std_header():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = DltMessage.create_non_verbose_message(
@@ -52,7 +52,7 @@ def test_dlt_std_header():
     assert dlt_message2.std_header.message_counter == 111
 
 
-def test_dlt_std_header_no_option():
+def test_message_std_header_no_option():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = DltMessage.create_non_verbose_message(
@@ -70,7 +70,7 @@ def test_dlt_std_header_no_option():
     assert dlt_message2.std_header.message_counter == 0
 
 
-def test_dlt_std_header_timestamp():
+def test_message_std_header_timestamp():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = DltMessage.create_non_verbose_message(
@@ -89,7 +89,7 @@ def test_dlt_std_header_timestamp():
     assert dlt_message2.std_header.message_counter == 0
 
 
-def test_dlt_std_header_session_id():
+def test_message_std_header_session_id():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = DltMessage.create_non_verbose_message(
@@ -108,7 +108,7 @@ def test_dlt_std_header_session_id():
     assert dlt_message2.std_header.message_counter == 0
 
 
-def test_dlt_std_header_ecu_id():
+def test_message_std_header_ecu_id():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = DltMessage.create_non_verbose_message(
@@ -127,7 +127,7 @@ def test_dlt_std_header_ecu_id():
     assert dlt_message2.std_header.message_counter == 0
 
 
-def test_dlt_std_header_min():
+def test_message_std_header_min():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = DltMessage.create_non_verbose_message(
@@ -149,7 +149,7 @@ def test_dlt_std_header_min():
     assert dlt_message2.std_header.message_counter == 0
 
 
-def test_dlt_std_header_max():
+def test_message_std_header_max():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = DltMessage.create_non_verbose_message(
@@ -171,7 +171,7 @@ def test_dlt_std_header_max():
     assert dlt_message2.std_header.message_counter == 0xFF
 
 
-def test_dlt_std_header_msbf_non_verbose_false():
+def test_message_std_header_msbf_non_verbose_false():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = _dlt_std_header_msbf_non_verbose_make_messsage(False)
@@ -182,7 +182,7 @@ def test_dlt_std_header_msbf_non_verbose_false():
     _dlt_std_header_msbf_non_verbose_validation(dlt_message2)
 
 
-def test_dlt_std_header_msbf_non_verbose_true():
+def test_message_std_header_msbf_non_verbose_true():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = _dlt_std_header_msbf_non_verbose_make_messsage(True)
@@ -207,7 +207,7 @@ def _dlt_std_header_msbf_non_verbose_validation(msg: DltMessage):
     assert msg.non_verbose_payload.non_static_data == b"\x01\x02\x03"
 
 
-def test_dlt_std_header_msbf_verbose_false():
+def test_message_std_header_msbf_verbose_false():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = _dlt_std_header_msbf_verbose_make_messsage(False)
@@ -218,7 +218,7 @@ def test_dlt_std_header_msbf_verbose_false():
     _dlt_std_header_msbf_verbose_validation(dlt_message2)
 
 
-def test_dlt_std_header_msbf_verbose_true():
+def test_message_std_header_msbf_verbose_true():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = _dlt_std_header_msbf_verbose_make_messsage(True)
@@ -288,7 +288,7 @@ def _dlt_std_header_msbf_verbose_validation(msg: DltMessage):
     )
 
 
-def test_dlt_ext_header():
+def test_message_ext_header():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = DltMessage.create_verbose_message(
@@ -309,7 +309,7 @@ def test_dlt_ext_header():
     assert dlt_message2.ext_header.context_id == "Ctx"
 
 
-def test_dlt_ext_header_min():
+def test_message_ext_header_min():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = DltMessage.create_verbose_message(
@@ -330,7 +330,7 @@ def test_dlt_ext_header_min():
     assert dlt_message2.ext_header.context_id == ""
 
 
-def test_dlt_ext_header_max():
+def test_message_ext_header_max():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = DltMessage.create_verbose_message(
@@ -351,7 +351,7 @@ def test_dlt_ext_header_max():
     assert dlt_message2.ext_header.context_id == "CtxX"
 
 
-def test_dlt_verbose_payload_bool():
+def test_message_verbose_payload_bool():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = _make_verbose_payload_message(
@@ -365,7 +365,7 @@ def test_dlt_verbose_payload_bool():
     assert cast(ArgumentBool, dlt_message2.verbose_payload.arguments[1]).data is True
 
 
-def test_dlt_verbose_payload_uint():
+def test_message_verbose_payload_uint():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = _make_verbose_payload_message(
@@ -392,7 +392,7 @@ def test_dlt_verbose_payload_uint():
     )
 
 
-def test_dlt_verbose_payload_sint():
+def test_message_verbose_payload_sint():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = _make_verbose_payload_message(
@@ -421,7 +421,7 @@ def test_dlt_verbose_payload_sint():
     )
 
 
-def test_dlt_verbose_payload_float():
+def test_message_verbose_payload_float():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = _make_verbose_payload_message(
@@ -441,7 +441,7 @@ def test_dlt_verbose_payload_float():
     )
 
 
-def test_dlt_verbose_payload_string():
+def test_message_verbose_payload_string():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = _make_verbose_payload_message(
@@ -461,7 +461,7 @@ def test_dlt_verbose_payload_string():
     )
 
 
-def test_dlt_verbose_payload_raw():
+def test_message_verbose_payload_raw():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = _make_verbose_payload_message([ArgumentRaw(b"\x01\x02\x03")])
