@@ -1,6 +1,6 @@
 """Provide payload class of the DLT protocol. """
 import struct
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from enum import IntEnum
 from typing import List, Optional, Union
 
@@ -12,7 +12,7 @@ from typing import List, Optional, Union
 ###############################################################################
 
 
-class Payload(metaclass=ABCMeta):
+class Payload(ABC):
     """The Payload of a DLT Message."""
 
     @classmethod
@@ -213,7 +213,7 @@ class AvailableTypeInfo(IntEnum):
     TYPE_INFO_RAW = TypeInfo.TYPE_RAW
 
 
-class Argument(metaclass=ABCMeta):
+class Argument(ABC):
 
     _TYPE_INFO_LENGTH = 4
 
