@@ -69,6 +69,15 @@ def test_file_list_iterator():
     assert message_len == 2
 
 
+# the test can be executed after running all unit tests
+@pytest.mark.skip(reason="file not stored")
+def test_quick_start():
+    path = TEST_RESULTS_DIR_PATH / Path("test_message_std_header_msbf_verbose_true.dlt")
+    print()
+    for msg in DltFileReader(path):
+        print(msg)
+
+
 def _make_dlt_message():
     std_header = DltMessage._create_standard_header(
         0, None, None, None, None, 0, 1, False
@@ -77,4 +86,4 @@ def _make_dlt_message():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main(["--capture", "no"])

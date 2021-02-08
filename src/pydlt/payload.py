@@ -15,6 +15,9 @@ from typing import List, Optional, Union
 class Payload(ABC):
     """The Payload of a DLT Message."""
 
+    def __str__(self) -> str:
+        return self._to_str()
+
     @classmethod
     @abstractmethod
     def create_from_bytes(cls, data: bytes, msb_fitst: bool) -> "Payload":
@@ -53,6 +56,15 @@ class Payload(ABC):
 
         Returns:
             int: Length of the data bytes
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _to_str(self) -> str:
+        """Convert payload to human readable string.
+
+        Returns:
+            str: Human readable string.
         """
         raise NotImplementedError
 
@@ -136,7 +148,20 @@ class NonVerbosePayload(Payload):
 
     @property
     def bytes_length(self) -> int:
+        """Get length of the data bytes.
+
+        Returns:
+            int: Length of the data bytes
+        """
         return self._MESSAGE_ID_LENGTH + len(self.non_static_data)
+
+    def _to_str(self) -> str:
+        """Convert payload to human readable string.
+
+        Returns:
+            str: Human readable string.
+        """
+        return f"[{self.message_id}] {self.non_static_data.hex()}"
 
 
 ###############################################################################
@@ -219,6 +244,9 @@ class Argument(ABC):
 
     def __init__(self, msb_first: Optional[bool]):
         self.msb_first = msb_first
+
+    def __str__(self) -> str:
+        return self._to_str()
 
     @staticmethod
     @abstractmethod
@@ -343,6 +371,15 @@ class Argument(ABC):
         """
         return self._TYPE_INFO_LENGTH + self.data_payload_length
 
+    @abstractmethod
+    def _to_str(self) -> str:
+        """Convert payload to human readable string.
+
+        Returns:
+            str: Human readable string.
+        """
+        raise NotImplementedError
+
     @property
     @abstractmethod
     def data_payload_length(self) -> int:
@@ -389,6 +426,9 @@ class ArgumentNumBase(Argument):
 
         """
         raise NotImplementedError
+
+    def _to_str(self) -> str:
+        return str(self.data)
 
     @staticmethod
     @abstractmethod
@@ -665,6 +705,9 @@ class ArgumentString(ArgumentByteBase):
         super().__init__(msb_first)
         self.data = data
 
+    def _to_str(self) -> str:
+        return self.data
+
     @staticmethod
     @abstractmethod
     def _encoding_format() -> str:
@@ -715,6 +758,9 @@ class ArgumentRaw(ArgumentByteBase):
     ):
         super().__init__(msb_first)
         self.data = data
+
+    def _to_str(self) -> str:
+        return self.data.hex()
 
     @staticmethod
     def _type_info() -> AvailableTypeInfo:
@@ -794,3 +840,11 @@ class VerbosePayload(Payload):
         for arg in self.arguments:
             length += arg.bytes_length
         return length
+
+    def _to_str(self) -> str:
+        """Convert payload to human readable string.
+
+        Returns:
+            str: Human readable string.
+        """
+        return " ".join([str(arg) for arg in self.arguments])

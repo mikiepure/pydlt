@@ -1,7 +1,12 @@
 """ Provide message class of the DLT protocol. """
+from datetime import datetime
 from typing import cast, List, Optional
 
 from pydlt.header import (
+    MessageBusInfo,
+    MessageControlInfo,
+    MessageLogInfo,
+    MessageTraceInfo,
     StandardHeader,
     ExtendedHeader,
     StorageHeader,
@@ -17,6 +22,44 @@ from pydlt.payload import Argument, NonVerbosePayload, Payload, VerbosePayload
 # - 7.7.6 Additional Message Parts
 # in AUTOSAR Specification of Diagnostic Log and Trace V1.2.0 R4.0 Rev3
 ###############################################################################
+
+
+_MESSAGE_TYPE_STR = {
+    MessageType.DLT_TYPE_LOG: "log",
+    MessageType.DLT_TYPE_APP_TRACE: "app_trace",
+    MessageType.DLT_TYPE_NW_TRACE: "nw_trace",
+    MessageType.DLT_TYPE_CONTROL: "control",
+}
+
+_MESSAGE_LOG_INFO_STR = {
+    MessageLogInfo.DLT_LOG_FATAL: "fatal",
+    MessageLogInfo.DLT_LOG_ERROR: "error",
+    MessageLogInfo.DLT_LOG_WARN: "warn",
+    MessageLogInfo.DLT_LOG_INFO: "info",
+    MessageLogInfo.DLT_LOG_DEBUG: "debug",
+    MessageLogInfo.DLT_LOG_VERBOSE: "verbose",
+}
+
+_MESSAGE_TRACE_INFO_STR = {
+    MessageTraceInfo.DLT_TRACE_VARIABLE: "variable",
+    MessageTraceInfo.DLT_TRACE_FUNCTON_IN: "func_in",
+    MessageTraceInfo.DLT_TRACE_FUNCTON_OUT: "func_out",
+    MessageTraceInfo.DLT_TRACE_STATE: "state",
+    MessageTraceInfo.DLT_TRACE_VFB: "vfb",
+}
+
+_MESSAGE_BUS_INFO_STR = {
+    MessageBusInfo.DLT_NW_TRACE_IPC: "ipc",
+    MessageBusInfo.DLT_NW_TRACE_CAN: "can",
+    MessageBusInfo.DLT_NW_TRACE_FLEXRAY: "flexray",
+    MessageBusInfo.DLT_NW_TRACE_MOST: "most",
+}
+
+_MESSAGE_CONTROL_INFO_STR = {
+    MessageControlInfo.DLT_CONTROL_REQUEST: "request",
+    MessageControlInfo.DLT_CONTROL_RESPONSE: "response",
+    MessageControlInfo.DLT_CONTROL_TIME: "time",
+}
 
 
 class DltMessage:
@@ -47,6 +90,77 @@ class DltMessage:
         self.std_header = std_header
         self.ext_header = ext_header
         self.payload = payload
+
+    def __str__(self) -> str:
+        """Get overview of the message.
+
+        Overview is string of the following format:
+        [<Time> ][<Timestamp> ]<Count>[ <Ecuid>][ <Apid>][ <Ctid>][ <SessionId>]
+        [ <Type>][ <Subtype>][ <Mode>][ <#Args>][ <Payload>]
+
+        Returns:
+            str: Overview of the message
+        """
+        ret = []
+        if self.str_header is not None:
+            ret.append(
+                datetime.fromtimestamp(self.str_header.seconds).strftime(
+                    "%Y/%m/%d %H:%M:%S"
+                )
+                + "."
+                + str(self.str_header.microseconds).zfill(6)
+            )
+        if self.std_header.timestamp is not None:
+            ret.append(
+                str(int(self.std_header.timestamp / 10000))
+                + "."
+                + str(int(self.std_header.timestamp % 10000)).zfill(4)
+            )
+        ret.append(str(self.std_header.message_counter))
+        if self.std_header.ecu_id is not None:
+            ret.append(self.std_header.ecu_id)
+        elif self.str_header is not None:
+            ret.append(self.str_header.ecu_id)
+        if self.ext_header is not None:
+            ret.append(self.ext_header.application_id)
+            ret.append(self.ext_header.context_id)
+        if self.std_header.session_id is not None:
+            ret.append(self.std_header.session_id)
+        if self.ext_header is not None:
+            ret.append(_MESSAGE_TYPE_STR.get(self.ext_header.message_type, "unknown"))
+            if self.ext_header.message_type == MessageType.DLT_TYPE_LOG:
+                ret.append(
+                    _MESSAGE_LOG_INFO_STR.get(
+                        self.ext_header.message_log_info, "unknown"
+                    )
+                )
+            if self.ext_header.message_type == MessageType.DLT_TYPE_APP_TRACE:
+                ret.append(
+                    _MESSAGE_TRACE_INFO_STR.get(
+                        self.ext_header.message_trace_info, "unknown"
+                    )
+                )
+            if self.ext_header.message_type == MessageType.DLT_TYPE_NW_TRACE:
+                ret.append(
+                    _MESSAGE_BUS_INFO_STR.get(
+                        self.ext_header.message_bus_info, "unknown"
+                    )
+                )
+            if self.ext_header.message_type == MessageType.DLT_TYPE_CONTROL:
+                ret.append(
+                    _MESSAGE_CONTROL_INFO_STR.get(
+                        self.ext_header.message_control_info, "unknown"
+                    )
+                )
+        if self.ext_header is not None and self.ext_header.verbose:
+            ret.append("verbose")
+        else:
+            ret.append("non-verbose")
+        if self.ext_header is not None:
+            ret.append(str(self.ext_header.number_of_arguments))
+        if self.payload is not None:
+            ret.append(str(self.payload))
+        return " ".join(ret)
 
     @classmethod
     def create_non_verbose_message(
