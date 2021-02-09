@@ -4,8 +4,9 @@ from pathlib import Path
 import pytest
 
 from pydlt.file import DltFileReader, DltFileWriter
-from pydlt.header import StorageHeader
+from pydlt.header import MessageLogInfo, MessageType, StorageHeader
 from pydlt.message import DltMessage
+from pydlt.payload import ArgumentStringAscii
 
 CURRENT_DIR_PATH = Path(__file__).parent.absolute()
 TEST_RESULTS_DIR_PATH = CURRENT_DIR_PATH / "results"
@@ -69,12 +70,34 @@ def test_file_list_iterator():
     assert message_len == 2
 
 
-# the test can be executed after running all unit tests
-@pytest.mark.skip(reason="file not stored")
 def test_quick_start():
-    path = TEST_RESULTS_DIR_PATH / Path("test_message_std_header_msbf_verbose_true.dlt")
+    path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
+
+    # Create DLT message
+    msg1 = DltMessage.create_verbose_message(
+        [ArgumentStringAscii("hello, pydlt!")],
+        MessageType.DLT_TYPE_LOG,
+        MessageLogInfo.DLT_LOG_INFO,
+        "App",
+        "Ctx",
+        message_counter=0,
+        str_header=StorageHeader(0, 0, "Ecu"),
+    )
+    msg2 = DltMessage.create_non_verbose_message(
+        0,
+        b"\x01\x02\x03",
+        message_counter=1,
+        str_header=StorageHeader(0, 0, "Ecu"),
+    )
+    # Write DLT messages to file
+    with DltFileWriter(path) as writer:
+        writer.write_messages([msg1, msg2])
+
     print()
+
+    # Read each DLT message from file
     for msg in DltFileReader(path):
+        # Print overview of each DLT message
         print(msg)
 
 
@@ -86,4 +109,5 @@ def _make_dlt_message():
 
 
 if __name__ == "__main__":
-    pytest.main(["--capture", "no"])
+    pytest.main()
+    # pytest.main(["--capture", "no"])
