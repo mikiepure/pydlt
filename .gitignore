@@ -138,4 +138,4 @@ dmypy.json
 cython_debug/
 
 # project defined
-tests/pydlt/results
+tests/results
