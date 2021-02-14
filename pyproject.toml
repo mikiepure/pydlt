@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydlt"
-version = "0.1.1"
+version = "0.1.2"
 description = "A pyre-python library to handle AUTOSAR DLT."
 authors = ["Miki, Hiromitsu <mikiepure+dev@gmail.com>"]
 license = "MIT"
