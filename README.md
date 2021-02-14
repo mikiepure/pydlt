@@ -8,10 +8,14 @@ AUTOSAR Specification of Diagnostic Log and Trace V1.2.0 R4.0 Rev3, Section 7.7 
 ### Write messages to DLT file
 
 ```py
-from pydlt.file import DltFileWriter
-from pydlt.header import MessageLogInfo, MessageType, StorageHeader
-from pydlt.message import DltMessage
-from pydlt.payload import ArgumentStringAscii
+from pydlt import (
+    ArgumentStringAscii,
+    DltFileWriter,
+    DltMessage,
+    MessageLogInfo,
+    MessageType,
+    StorageHeader,
+)
 
 # Create DLT message
 msg1 = DltMessage.create_verbose_message(
@@ -38,7 +42,7 @@ with DltFileWriter("<path to DLT file>") as writer:
 ### Read messages from DLT file
 
 ```py
-from pydlt.file import DltFileReader
+from pydlt import DltFileReader
 
 # Read DLT messages from file
 for msg in DltFileReader("<path to DLT file>"):
