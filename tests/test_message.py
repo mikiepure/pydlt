@@ -493,4 +493,4 @@ def _make_verbose_payload_message(
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main(sys.argv)

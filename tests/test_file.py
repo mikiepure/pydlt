@@ -114,5 +114,4 @@ def _make_dlt_message():
 
 
 if __name__ == "__main__":
-    pytest.main()
-    # pytest.main(["--capture", "no"])
+    pytest.main(sys.argv.extend(["--capture", "no"]))
