@@ -1,17 +1,17 @@
 """ Provide message class of the DLT protocol. """
 from datetime import datetime
-from typing import cast, List, Optional
+from typing import List, Optional, cast
 
 from pydlt.header import (
+    ExtendedHeader,
     MessageBusInfo,
     MessageControlInfo,
     MessageLogInfo,
     MessageTraceInfo,
-    StandardHeader,
-    ExtendedHeader,
-    StorageHeader,
     MessageType,
     MessageTypeInfo,
+    StandardHeader,
+    StorageHeader,
 )
 from pydlt.payload import Argument, NonVerbosePayload, Payload, VerbosePayload
 

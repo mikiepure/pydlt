@@ -172,6 +172,30 @@ class NonVerbosePayload(Payload):
 ###############################################################################
 
 
+# Base type:
+# - Type Bool (BOOL)
+# - Type Signed (SINT)
+# - Type Unsigned (UINT)
+# - Type Float (FLOA)
+# - Type Array (ARAY)    *not supported*
+# - Type String (STRG)
+# - Type Raw (RAWD)
+# - Trace Info (TRAI)    *not supported*
+# - Type Struct (STRU)   *not supported*
+# Option type:
+# - Type Length (TYLE)   *supported with limitation*
+# - Variable Info (VARI) *not supported*
+# - Fixed Point (FIXP)   *not supported*
+# - String Coding (SCOD)
+# fmt: off
+MASK_BASE_TYPE     = 0b00000000000000000110011111110000  # noqa: E221
+MASK_TYPE_LENGTH   = 0b00000000000000000000000000001111  # noqa: E221
+MASK_VARIABLE_INFO = 0b00000000000000000000100000000000  # noqa: E221
+MASK_FIXED_POINT   = 0b00000000000000000001000000000000  # noqa: E221
+MASK_STRING_CODING = 0b00000000000000111000000000000000  # noqa: E221
+# fmt: on
+
+
 class TypeInfo(IntEnum):
     """A definition of Type Info of the Argument of Verbose Mode Paylaod.
 
@@ -219,25 +243,6 @@ class TypeInfo(IntEnum):
     # fmt: on
 
 
-class AvailableTypeInfo(IntEnum):
-    """Available pattern of the Type Info in the code (NOT in the protocol). """
-
-    TYPE_INFO_BOOL = TypeInfo.TYPE_LENGTH_8BIT | TypeInfo.TYPE_BOOL
-    TYPE_INFO_SINT8 = TypeInfo.TYPE_LENGTH_8BIT | TypeInfo.TYPE_SIGNED
-    TYPE_INFO_SINT16 = TypeInfo.TYPE_LENGTH_16BIT | TypeInfo.TYPE_SIGNED
-    TYPE_INFO_SINT32 = TypeInfo.TYPE_LENGTH_32BIT | TypeInfo.TYPE_SIGNED
-    TYPE_INFO_SINT64 = TypeInfo.TYPE_LENGTH_64BIT | TypeInfo.TYPE_SIGNED
-    TYPE_INFO_UINT8 = TypeInfo.TYPE_LENGTH_8BIT | TypeInfo.TYPE_UNSIGNED
-    TYPE_INFO_UINT16 = TypeInfo.TYPE_LENGTH_16BIT | TypeInfo.TYPE_UNSIGNED
-    TYPE_INFO_UINT32 = TypeInfo.TYPE_LENGTH_32BIT | TypeInfo.TYPE_UNSIGNED
-    TYPE_INFO_UINT64 = TypeInfo.TYPE_LENGTH_64BIT | TypeInfo.TYPE_UNSIGNED
-    TYPE_INFO_FLOAT32 = TypeInfo.TYPE_LENGTH_32BIT | TypeInfo.TYPE_FLOAT
-    TYPE_INFO_FLOAT64 = TypeInfo.TYPE_LENGTH_64BIT | TypeInfo.TYPE_FLOAT
-    TYPE_INFO_STRING_ASCII = TypeInfo.TYPE_STRING | TypeInfo.STRING_CODING_ASCII
-    TYPE_INFO_STRING_UTF8 = TypeInfo.TYPE_STRING | TypeInfo.STRING_CODING_UTF8
-    TYPE_INFO_RAW = TypeInfo.TYPE_RAW
-
-
 class Argument(ABC):
 
     _TYPE_INFO_LENGTH = 4
@@ -248,9 +253,9 @@ class Argument(ABC):
     def __str__(self) -> str:
         return self._to_str()
 
-    @staticmethod
+    @property
     @abstractmethod
-    def _type_info() -> AvailableTypeInfo:
+    def _type_info(self) -> int:
         raise NotImplementedError
 
     @classmethod
@@ -265,64 +270,75 @@ class Argument(ABC):
         """
         endian = ">" if msb_first else "<"
         type_info = struct.unpack(f"{endian}I", data[: cls._TYPE_INFO_LENGTH])[0]
-        if type_info == AvailableTypeInfo.TYPE_INFO_BOOL:
-            return ArgumentBool.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_SINT8:
-            return ArgumentSInt8.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_SINT16:
-            return ArgumentSInt16.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_SINT32:
-            return ArgumentSInt32.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_SINT64:
-            return ArgumentSInt64.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_UINT8:
-            return ArgumentUInt8.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_UINT16:
-            return ArgumentUInt16.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_UINT32:
-            return ArgumentUInt32.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_UINT64:
-            return ArgumentUInt64.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_FLOAT32:
-            return ArgumentFloat32.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_FLOAT64:
-            return ArgumentFloat64.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_STRING_ASCII:
-            return ArgumentStringAscii.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_STRING_UTF8:
-            return ArgumentStringUtf8.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
-        elif type_info == AvailableTypeInfo.TYPE_INFO_RAW:
+        type_info_base = type_info & MASK_BASE_TYPE
+        if type_info_base == TypeInfo.TYPE_BOOL:
+            type_info_length = type_info & MASK_TYPE_LENGTH
+            if type_info_length == TypeInfo.TYPE_LENGTH_8BIT:
+                return ArgumentBool.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], msb_first
+                )
+        elif type_info_base == TypeInfo.TYPE_SIGNED:
+            type_info_length = type_info & MASK_TYPE_LENGTH
+            if type_info_length == TypeInfo.TYPE_LENGTH_8BIT:
+                return ArgumentSInt8.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], msb_first
+                )
+            elif type_info_length == TypeInfo.TYPE_LENGTH_16BIT:
+                return ArgumentSInt16.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], msb_first
+                )
+            elif type_info_length == TypeInfo.TYPE_LENGTH_32BIT:
+                return ArgumentSInt32.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], msb_first
+                )
+            elif type_info_length == TypeInfo.TYPE_LENGTH_64BIT:
+                return ArgumentSInt64.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], msb_first
+                )
+        elif type_info_base == TypeInfo.TYPE_UNSIGNED:
+            type_info_length = type_info & MASK_TYPE_LENGTH
+            if type_info_length == TypeInfo.TYPE_LENGTH_8BIT:
+                return ArgumentUInt8.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], msb_first
+                )
+            elif type_info_length == TypeInfo.TYPE_LENGTH_16BIT:
+                return ArgumentUInt16.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], msb_first
+                )
+            elif type_info_length == TypeInfo.TYPE_LENGTH_32BIT:
+                return ArgumentUInt32.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], msb_first
+                )
+            elif type_info_length == TypeInfo.TYPE_LENGTH_64BIT:
+                return ArgumentUInt64.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], msb_first
+                )
+        elif type_info_base == TypeInfo.TYPE_FLOAT:
+            type_info_length = type_info & MASK_TYPE_LENGTH
+            if type_info_length == TypeInfo.TYPE_LENGTH_32BIT:
+                return ArgumentFloat32.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], msb_first
+                )
+            elif type_info_length == TypeInfo.TYPE_LENGTH_64BIT:
+                return ArgumentFloat64.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], msb_first
+                )
+        elif type_info_base == TypeInfo.TYPE_STRING:
+            type_info_string_coding = type_info & MASK_STRING_CODING
+            if type_info_string_coding == TypeInfo.STRING_CODING_ASCII:
+                return ArgumentString.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], False, msb_first
+                )
+            elif type_info_string_coding == TypeInfo.STRING_CODING_UTF8:
+                return ArgumentString.from_data_payload(
+                    data[cls._TYPE_INFO_LENGTH :], True, msb_first
+                )
+        elif type_info_base == TypeInfo.TYPE_RAW:
             return ArgumentRaw.from_data_payload(
                 data[cls._TYPE_INFO_LENGTH :], msb_first
             )
-        else:
-            raise ValueError(f"Unsupported TypeInfo: {hex(type_info)}")
+
+        raise ValueError(f"Unsupported TypeInfo: {bin(type_info)}")
 
     @classmethod
     @abstractmethod
@@ -358,9 +374,9 @@ class Argument(ABC):
             endian = ">" if self.msb_first else "<"
         else:
             raise ValueError("Endian is not known")
-        return struct.pack(
-            f"{endian}I", self._type_info()
-        ) + self.data_payload_to_bytes(msb_first)
+        return struct.pack(f"{endian}I", self._type_info) + self.data_payload_to_bytes(
+            msb_first
+        )
 
     @property
     def bytes_length(self) -> int:
@@ -457,9 +473,9 @@ class ArgumentNumBase(Argument):
 
 
 class ArgumentBool(ArgumentNumBase):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_BOOL
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_BOOL | TypeInfo.TYPE_LENGTH_8BIT
 
     @staticmethod
     def _struct_format() -> str:
@@ -475,9 +491,9 @@ class ArgumentBool(ArgumentNumBase):
 
 
 class ArgumentUInt8(ArgumentNumBase):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_UINT8
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_UNSIGNED | TypeInfo.TYPE_LENGTH_8BIT
 
     @staticmethod
     def _struct_format() -> str:
@@ -493,9 +509,9 @@ class ArgumentUInt8(ArgumentNumBase):
 
 
 class ArgumentUInt16(ArgumentNumBase):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_UINT16
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_UNSIGNED | TypeInfo.TYPE_LENGTH_16BIT
 
     @staticmethod
     def _struct_format() -> str:
@@ -511,9 +527,9 @@ class ArgumentUInt16(ArgumentNumBase):
 
 
 class ArgumentUInt32(ArgumentNumBase):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_UINT32
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_UNSIGNED | TypeInfo.TYPE_LENGTH_32BIT
 
     @staticmethod
     def _struct_format() -> str:
@@ -529,9 +545,9 @@ class ArgumentUInt32(ArgumentNumBase):
 
 
 class ArgumentUInt64(ArgumentNumBase):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_UINT64
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_UNSIGNED | TypeInfo.TYPE_LENGTH_64BIT
 
     @staticmethod
     def _struct_format() -> str:
@@ -547,9 +563,9 @@ class ArgumentUInt64(ArgumentNumBase):
 
 
 class ArgumentSInt8(ArgumentNumBase):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_SINT8
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_SIGNED | TypeInfo.TYPE_LENGTH_8BIT
 
     @staticmethod
     def _struct_format() -> str:
@@ -565,9 +581,9 @@ class ArgumentSInt8(ArgumentNumBase):
 
 
 class ArgumentSInt16(ArgumentNumBase):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_SINT16
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_SIGNED | TypeInfo.TYPE_LENGTH_16BIT
 
     @staticmethod
     def _struct_format() -> str:
@@ -583,9 +599,9 @@ class ArgumentSInt16(ArgumentNumBase):
 
 
 class ArgumentSInt32(ArgumentNumBase):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_SINT32
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_SIGNED | TypeInfo.TYPE_LENGTH_32BIT
 
     @staticmethod
     def _struct_format() -> str:
@@ -601,9 +617,9 @@ class ArgumentSInt32(ArgumentNumBase):
 
 
 class ArgumentSInt64(ArgumentNumBase):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_SINT64
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_SIGNED | TypeInfo.TYPE_LENGTH_64BIT
 
     @staticmethod
     def _struct_format() -> str:
@@ -619,9 +635,9 @@ class ArgumentSInt64(ArgumentNumBase):
 
 
 class ArgumentFloat32(ArgumentNumBase):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_FLOAT32
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_FLOAT | TypeInfo.TYPE_LENGTH_32BIT
 
     @staticmethod
     def _struct_format() -> str:
@@ -637,9 +653,9 @@ class ArgumentFloat32(ArgumentNumBase):
 
 
 class ArgumentFloat64(ArgumentNumBase):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_FLOAT64
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_FLOAT | TypeInfo.TYPE_LENGTH_64BIT
 
     @staticmethod
     def _struct_format() -> str:
@@ -661,17 +677,6 @@ class ArgumentByteBase(Argument):
     """
 
     LENGTH_SIZE = 2
-
-    @classmethod
-    def from_data_payload(cls, data_payload: bytes, msb_first: bool) -> "Argument":
-        endian = ">" if msb_first else "<"
-        length = struct.unpack(f"{endian}H", data_payload[: cls.LENGTH_SIZE])[0]
-        return cls.from_data(data_payload, length, msb_first)
-
-    @classmethod
-    @abstractmethod
-    def from_data(cls, data: bytes, length: int, msb_first: bool) -> "Argument":
-        raise NotImplementedError
 
     @property
     def data_payload_length(self) -> int:
@@ -700,54 +705,57 @@ class ArgumentString(ArgumentByteBase):
     def __init__(
         self,
         data: str,
+        is_utf8: bool = False,
         msb_first: Optional[bool] = None,
     ):
+        """Create argument of Type String.
+
+        Args:
+            data (str): A data payload of string.
+            is_utf8 (bool, optional): Encoding of the string is UTF-8 if True, or ASCII.
+                                      Defaults to True (UTF-8).
+            msb_first (Optional[bool], optional): [description]. Defaults to None.
+        """
         super().__init__(msb_first)
         self.data = data
+        self.is_utf8 = is_utf8
 
     def _to_str(self) -> str:
         return self.data
 
-    @staticmethod
-    @abstractmethod
-    def _encoding_format() -> str:
-        raise NotImplementedError
+    @property
+    def _type_info(self) -> int:
+        type_info = TypeInfo.TYPE_STRING
+        if self.is_utf8:
+            type_info |= TypeInfo.STRING_CODING_UTF8
+        return type_info
 
     @classmethod
-    def from_data(cls, data: bytes, length: int, msb_first: bool) -> "Argument":
+    def from_data_payload(
+        cls, data_payload: bytes, is_utf8: bool, msb_first: bool
+    ) -> "Argument":
+        endian = ">" if msb_first else "<"
+        length = struct.unpack(f"{endian}H", data_payload[: cls.LENGTH_SIZE])[0]
         return cls(
-            data[cls.LENGTH_SIZE : cls.LENGTH_SIZE + length - 1].decode(
-                cls._encoding_format(), "replace"
+            data_payload[cls.LENGTH_SIZE : cls.LENGTH_SIZE + length - 1].decode(
+                cls._encoding_format(is_utf8), "replace"
             ),
+            is_utf8,
             msb_first,
         )
 
     @property
     def data_length(self) -> int:
-        return len(self.data.encode(self._encoding_format(), "replace")) + 1
+        return len(self.data.encode(self._encoding_format(self.is_utf8), "replace")) + 1
 
     def data_to_bytes(self) -> bytes:
-        return self.data.encode(self._encoding_format(), "replace") + b"\x00"
-
-
-class ArgumentStringAscii(ArgumentString):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_STRING_ASCII
+        return (
+            self.data.encode(self._encoding_format(self.is_utf8), "replace") + b"\x00"
+        )
 
     @staticmethod
-    def _encoding_format() -> str:
-        return "ascii"
-
-
-class ArgumentStringUtf8(ArgumentString):
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_STRING_UTF8
-
-    @staticmethod
-    def _encoding_format() -> str:
-        return "utf-8"
+    def _encoding_format(is_utf8: bool) -> str:
+        return "utf-8" if is_utf8 else "ascii"
 
 
 class ArgumentRaw(ArgumentByteBase):
@@ -762,13 +770,15 @@ class ArgumentRaw(ArgumentByteBase):
     def _to_str(self) -> str:
         return self.data.hex()
 
-    @staticmethod
-    def _type_info() -> AvailableTypeInfo:
-        return AvailableTypeInfo.TYPE_INFO_RAW
+    @property
+    def _type_info(self) -> int:
+        return TypeInfo.TYPE_RAW
 
     @classmethod
-    def from_data(cls, data: bytes, length: int, msb_first: bool) -> "Argument":
-        return cls(data[cls.LENGTH_SIZE : cls.LENGTH_SIZE + length], msb_first)
+    def from_data_payload(cls, data_payload: bytes, msb_first: bool) -> "Argument":
+        endian = ">" if msb_first else "<"
+        length = struct.unpack(f"{endian}H", data_payload[: cls.LENGTH_SIZE])[0]
+        return cls(data_payload[cls.LENGTH_SIZE : cls.LENGTH_SIZE + length], msb_first)
 
     @property
     def data_length(self) -> int:

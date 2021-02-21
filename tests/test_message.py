@@ -15,8 +15,7 @@ from pydlt import (
     ArgumentSInt16,
     ArgumentSInt32,
     ArgumentSInt64,
-    ArgumentStringAscii,
-    ArgumentStringUtf8,
+    ArgumentString,
     ArgumentUInt8,
     ArgumentUInt16,
     ArgumentUInt32,
@@ -247,8 +246,8 @@ def _dlt_std_header_msbf_verbose_make_messsage(msbf: bool) -> DltMessage:
             ArgumentSInt64(-1111111111111111111),
             ArgumentFloat32(1.11),
             ArgumentFloat64(1.11),
-            ArgumentStringAscii("abc123XYZ!"),
-            ArgumentStringUtf8("あいうえお"),
+            ArgumentString("abc123XYZ!", False),
+            ArgumentString("あいうえお", True),
             ArgumentRaw(b"\x01\x02\x03"),
         ],
         msbf,
@@ -280,15 +279,9 @@ def _dlt_std_header_msbf_verbose_validation(msg: DltMessage):
         cast(ArgumentFloat64, msg.verbose_payload.arguments[11]).data
         == struct.unpack(">d", struct.pack(">d", 1.11))[0]
     )
-    assert (
-        cast(ArgumentStringAscii, msg.verbose_payload.arguments[12]).data
-        == "abc123XYZ!"
-    )
-    assert cast(ArgumentStringUtf8, msg.verbose_payload.arguments[13]).data == "あいうえお"
-    assert (
-        cast(ArgumentStringAscii, msg.verbose_payload.arguments[14]).data
-        == b"\x01\x02\x03"
-    )
+    assert cast(ArgumentString, msg.verbose_payload.arguments[12]).data == "abc123XYZ!"
+    assert cast(ArgumentString, msg.verbose_payload.arguments[13]).data == "あいうえお"
+    assert cast(ArgumentRaw, msg.verbose_payload.arguments[14]).data == b"\x01\x02\x03"
 
 
 def test_message_ext_header():
@@ -448,19 +441,18 @@ def test_message_verbose_payload_string():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     dlt_message1 = _make_verbose_payload_message(
-        [ArgumentStringAscii("abc123XYZ!"), ArgumentStringUtf8("あいうえお")]
+        [ArgumentString("abc123XYZ!", False), ArgumentString("あいうえお", True)]
     )
     dlt_bytes = dlt_message1.to_bytes()
     path.write_bytes(dlt_bytes)
 
     dlt_message2 = DltMessage.create_from_bytes(dlt_bytes, True)
     assert (
-        cast(ArgumentStringAscii, dlt_message2.verbose_payload.arguments[0]).data
+        cast(ArgumentString, dlt_message2.verbose_payload.arguments[0]).data
         == "abc123XYZ!"
     )
     assert (
-        cast(ArgumentStringUtf8, dlt_message2.verbose_payload.arguments[1]).data
-        == "あいうえお"
+        cast(ArgumentString, dlt_message2.verbose_payload.arguments[1]).data == "あいうえお"
     )
 
 
@@ -473,7 +465,7 @@ def test_message_verbose_payload_raw():
 
     dlt_message2 = DltMessage.create_from_bytes(dlt_bytes, True)
     assert (
-        cast(ArgumentStringAscii, dlt_message2.verbose_payload.arguments[0]).data
+        cast(ArgumentRaw, dlt_message2.verbose_payload.arguments[0]).data
         == b"\x01\x02\x03"
     )
 
@@ -493,4 +485,4 @@ def _make_verbose_payload_message(
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main(sys.argv)

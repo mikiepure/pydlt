@@ -7,7 +7,10 @@
     "files.insertFinalNewline": true,
     "editor.rulers": [88],
     "editor.formatOnType": true,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
   },
   "python.formatting.provider": "black",
   "python.testing.pytestEnabled": true

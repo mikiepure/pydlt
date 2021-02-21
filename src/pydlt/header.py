@@ -1,8 +1,7 @@
 """Provide header class of the DLT protocol. """
 import struct
 from enum import IntEnum
-from typing import cast, Optional
-
+from typing import Optional, cast
 
 ###############################################################################
 # Standard Header of the DLT protocol

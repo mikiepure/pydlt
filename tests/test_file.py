@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from pydlt import (
-    ArgumentStringAscii,
+    ArgumentString,
     DltFileReader,
     DltFileWriter,
     DltMessage,
@@ -80,7 +80,7 @@ def test_quick_start():
 
     # Create DLT message
     msg1 = DltMessage.create_verbose_message(
-        [ArgumentStringAscii("hello, pydlt!")],
+        [ArgumentString("hello, pydlt!")],
         MessageType.DLT_TYPE_LOG,
         MessageLogInfo.DLT_LOG_INFO,
         "App",
@@ -114,5 +114,4 @@ def _make_dlt_message():
 
 
 if __name__ == "__main__":
-    pytest.main()
-    # pytest.main(["--capture", "no"])
+    pytest.main(sys.argv.extend(["--capture", "no"]))
