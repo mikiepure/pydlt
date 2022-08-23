@@ -32,6 +32,23 @@ TEST_RESULTS_DIR_PATH = CURRENT_DIR_PATH / "results"
 TEST_RESULTS_DIR_PATH.mkdir(exist_ok=True)
 
 
+def test_string_representation():
+    msg = DltMessage.create_verbose_message(
+        [ArgumentString('ABCabc129!')],
+        MessageType.DLT_TYPE_LOG,
+        MessageLogInfo.DLT_LOG_INFO,
+        "Apid",
+        "Ctid",
+        timestamp=93678,  # 9.3678 sec
+        session_id=12345,
+        ecu_id="Ecu",
+        message_counter=119,
+        str_header=StorageHeader(3600, 899, "ECU"),
+    )
+    assert str(msg) == '1970/01/01 02:00:00.000899 ' \
+        '9.3678 119 Ecu Apid Ctid 12345 log info verbose 1 ABCabc129!'
+
+
 def test_message_std_header():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
