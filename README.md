@@ -28,7 +28,7 @@ msg1 = DltMessage.create_verbose_message(
     str_header=StorageHeader(0, 0, "Ecu"),
 )
 print(msg1)
-# > 1970/01/01 09:00:00.000000 0 Ecu App Ctx log info verbose 1 hello, pydlt!
+# > 1970/01/01 00:00:00.000000 0 Ecu App Ctx log info verbose 1 hello, pydlt!
 msg2 = DltMessage.create_non_verbose_message(
     0,
     b"\x01\x02\x03",
@@ -36,7 +36,7 @@ msg2 = DltMessage.create_non_verbose_message(
     str_header=StorageHeader(0, 0, "Ecu"),
 )
 print(msg2)
-# > 1970/01/01 09:00:00.000000 1 Ecu non-verbose [0] 010203
+# > 1970/01/01 00:00:00.000000 1 Ecu non-verbose [0] 010203
 
 # Write DLT messages to file
 with DltFileWriter("<path to DLT file>") as writer:

@@ -1,5 +1,5 @@
 """ Provide message class of the DLT protocol. """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, cast
 
 from pydlt.header import (
@@ -104,7 +104,7 @@ class DltMessage:
         ret = []
         if self.str_header is not None:
             ret.append(
-                datetime.fromtimestamp(self.str_header.seconds).strftime(
+                datetime.fromtimestamp(self.str_header.seconds, timezone.utc).strftime(
                     "%Y/%m/%d %H:%M:%S"
                 )
                 + "."
