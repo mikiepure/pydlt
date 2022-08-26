@@ -125,7 +125,7 @@ class DltMessage:
             ret.append(self.ext_header.application_id)
             ret.append(self.ext_header.context_id)
         if self.std_header.session_id is not None:
-            ret.append(self.std_header.session_id)
+            ret.append(str(self.std_header.session_id))
         if self.ext_header is not None:
             ret.append(_MESSAGE_TYPE_STR.get(self.ext_header.message_type, "unknown"))
             if self.ext_header.message_type == MessageType.DLT_TYPE_LOG:
