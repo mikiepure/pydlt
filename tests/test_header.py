@@ -22,7 +22,7 @@ def test_storage_header():
 
 
 def test_storage_header_min():
-    header = StorageHeader(0, 0, '')
+    header = StorageHeader(0, 0, "")
     assert header == StorageHeader.create_from_bytes(header.to_bytes())
     assert 16 == len(header.to_bytes())
 
