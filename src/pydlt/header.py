@@ -38,9 +38,9 @@ class StandardHeader:
         version_number: int,
         message_counter: int,
         length: int,
-        ecu_id: Optional[str],
-        session_id: Optional[int],
-        timestamp: Optional[int],
+        ecu_id: Optional[str] = None,
+        session_id: Optional[int] = None,
+        timestamp: Optional[int] = None,
     ) -> None:
         """Create StandardHeader object.
 
@@ -64,6 +64,35 @@ class StandardHeader:
         self.ecu_id = ecu_id
         self.session_id = session_id
         self.timestamp = timestamp
+
+    def __repr__(self):
+        val = (
+            f"StandardHeader(use_extended_header={self.use_extended_header}, "
+            f"msb_first={self.msb_first}, version_number={self.version_number}, "
+            f"message_counter={self.message_counter}, length={self.length}"
+        )
+        if self.ecu_id is not None:
+            val += f', ecu_id="{self.ecu_id}"'
+        if self.session_id is not None:
+            val += f", session_id={self.session_id}"
+        if self.timestamp is not None:
+            val += f", timestamp={self.timestamp}"
+        val += ")"
+        return val
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return (
+                self.use_extended_header == other.use_extended_header
+                and self.msb_first == other.msb_first
+                and self.version_number == other.version_number
+                and self.message_counter == other.message_counter
+                and self.length == other.length
+                and self.ecu_id == other.ecu_id
+                and self.session_id == other.session_id
+                and self.timestamp == other.timestamp
+            )
+        return False
 
     @classmethod
     def create_from_bytes(cls, data: bytes) -> "StandardHeader":
@@ -326,6 +355,28 @@ class ExtendedHeader:
         self.application_id = application_id
         self.context_id = context_id
 
+    def __repr__(self):
+        return (
+            f"ExtendedHeader(verbose={self.verbose}, "
+            f"message_type={self.message_type}, "
+            f"message_type_info={self.message_type_info}, "
+            f"number_of_arguments={self.number_of_arguments}, "
+            f'application_id="{self.application_id}", '
+            f'context_id="{self.context_id}")'
+        )
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return (
+                self.verbose == other.verbose
+                and self.message_type == other.message_type
+                and self.message_type_info == other.message_type_info
+                and self.number_of_arguments == other.number_of_arguments
+                and self.application_id == other.application_id
+                and self.context_id == other.context_id
+            )
+        return False
+
     @classmethod
     def create_from_bytes(cls, data: bytes) -> "ExtendedHeader":
         """Create ExtendedHeader object from data bytes.
@@ -465,6 +516,21 @@ class StorageHeader:
         self.seconds = seconds
         self.microseconds = microseconds
         self.ecu_id = ecu_id
+
+    def __repr__(self):
+        return (
+            f"StorageHeader(seconds={self.seconds}, "
+            f'microseconds={self.microseconds}, ecu_id="{self.ecu_id}")'
+        )
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return (
+                self.seconds == other.seconds
+                and self.microseconds == other.microseconds
+                and self.ecu_id == other.ecu_id
+            )
+        return False
 
     @classmethod
     def create_from_bytes(cls, data: bytes) -> "StorageHeader":
