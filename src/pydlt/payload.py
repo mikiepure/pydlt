@@ -18,6 +18,11 @@ class Payload(ABC):
     def __str__(self) -> str:
         return self._to_str()
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.to_bytes(False) == other.to_bytes(False)
+        return False
+
     @classmethod
     @abstractmethod
     def create_from_bytes(cls, data: bytes, msb_fitst: bool) -> "Payload":
