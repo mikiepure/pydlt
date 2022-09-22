@@ -106,6 +106,25 @@ def test_quick_start():
         print(msg)
 
 
+def test_file_encoding():
+    path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
+    msg1 = DltMessage.create_verbose_message(
+        [ArgumentString("100°C äöü", encoding="latin-1")],
+        MessageType.DLT_TYPE_LOG,
+        MessageLogInfo.DLT_LOG_INFO,
+        "App",
+        "Ctx",
+        str_header=StorageHeader(0, 0, "Ecu"),
+    )
+    with DltFileWriter(path) as writer:
+        writer.write_messages([msg1])
+
+    with DltFileReader(path, encoding="latin-1") as reader:
+        msg = reader.read_message()
+        assert msg is not None
+        assert str(msg.payload) == "100°C äöü"
+
+
 def _make_dlt_message():
     std_header = DltMessage._create_standard_header(
         0, None, None, None, None, 0, 1, False

@@ -25,7 +25,7 @@ class DltFileReader:
             # handle each message
     """
 
-    def __init__(self, path: Union[str, Path]) -> None:
+    def __init__(self, path: Union[str, Path], encoding: Optional[str] = None) -> None:
         """Create DltFileReader object.
 
         Open a file of the path in the constructor.
@@ -37,8 +37,13 @@ class DltFileReader:
 
         Args:
             path (Union[str, Path]): A path to file.
+            encoding: encoding that will be used for parsing non-utf-8 dlt strings
+                      The dlt specification only supports ascii and utf-8 explicitly.
+                      However, some implementations store dlt strings in a local 8-bit
+                      format (e.g. latin-1) instead of plain ascii.
         """
         self._file = open(str(path), "rb")
+        self._encoding = encoding
 
     def __enter__(self) -> "DltFileReader":
         return self
@@ -86,7 +91,7 @@ class DltFileReader:
         if len(msg_data) < msg_length:
             return None
         self._file.seek(msg_length, SEEK_CUR)
-        return DltMessage.create_from_bytes(msg_data, True)
+        return DltMessage.create_from_bytes(msg_data, True, self._encoding)
 
     def read_messages(self) -> List[DltMessage]:
         """Read all DLT messages from file.
