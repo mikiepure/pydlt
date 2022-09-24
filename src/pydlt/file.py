@@ -67,18 +67,6 @@ class DltFileReader:
             raise StopIteration()
         return message
 
-    def _read_bytes(self, size: int) -> bytes:
-        """reads size bytes from the file
-        (self._file.read() might read less than requested)
-        """
-        result = b""
-        while len(result) < size:
-            chunk = self._file.read(size - len(result))
-            if len(chunk) == 0:
-                break
-            result += chunk
-        return result
-
     def read_message(self) -> Optional[DltMessage]:
         """Read 1 DLT message from file.
 
@@ -86,7 +74,7 @@ class DltFileReader:
             Optional[DltMessage]: DLT message or None if not enough data to read
         """
         min_length = StorageHeader.DATA_LENGTH + StandardHeader.DATA_MIN_LENGTH
-        msg_data = self._read_bytes(min_length)
+        msg_data = self._file.read(min_length)
 
         if len(msg_data) < min_length:
             return None
@@ -94,7 +82,7 @@ class DltFileReader:
             StandardHeader.STRUCT_MIN_FORMAT, msg_data, StorageHeader.DATA_LENGTH
         )[2]
         msg_length = StorageHeader.DATA_LENGTH + length
-        msg_data += self._read_bytes(msg_length - min_length)
+        msg_data += self._file.read(msg_length - min_length)
         if len(msg_data) < msg_length:
             return None
         return DltMessage.create_from_bytes(msg_data, True)
