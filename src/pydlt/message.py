@@ -91,6 +91,16 @@ class DltMessage:
         self.ext_header = ext_header
         self.payload = payload
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return (
+                self.str_header == other.str_header
+                and self.std_header == other.std_header
+                and self.ext_header == other.ext_header
+                and self.payload == other.payload
+            )
+        return False
+
     def __str__(self) -> str:
         """Get overview of the message.
 
