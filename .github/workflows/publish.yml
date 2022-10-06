@@ -1,0 +1,21 @@
+# This workflows will build and publish the python package when project is tagged in the v*.*.* form.
+# For more information see:
+# https://github.com/marketplace/actions/publish-python-poetry-package
+
+name: Python package
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build and publish to pypi
+        uses: JRubics/poetry-publish@v1.13
+        with:
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
+          plugins: "poetry-dynamic-versioning-plugin"

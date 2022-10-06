@@ -54,6 +54,28 @@ def test_file_context_manager():
     assert reader.closed is True
 
 
+def test_file_read_large_message():
+    path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
+
+    msg1 = DltMessage.create_verbose_message(
+        [ArgumentString("0123456789" * 6000)],
+        MessageType.DLT_TYPE_LOG,
+        MessageLogInfo.DLT_LOG_INFO,
+        "App",
+        "Ctx",
+        message_counter=0,
+        str_header=StorageHeader(0, 0, "Ecu"),
+    )
+
+    with DltFileWriter(path) as writer:
+        writer.write_messages([msg1])
+
+    with DltFileReader(path) as reader:
+        msg = reader.read_message()
+        assert msg is not None
+        assert msg1 == msg
+
+
 def test_file_list_iterator():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 

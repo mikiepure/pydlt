@@ -5,7 +5,7 @@
   // List of extensions which should be recommended for users of this workspace.
   "recommendations": [
     "ms-python.python",
-    "ms-pyright.pyright",
+    "ms-python.vscode-pylance",
     "njpwerner.autodocstring"
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.

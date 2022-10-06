@@ -18,6 +18,11 @@ class Payload(ABC):
     def __str__(self) -> str:
         return self._to_str()
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.to_bytes(False) == other.to_bytes(False)
+        return False
+
     @abstractmethod
     def to_bytes(self, msb_first: Optional[bool] = None) -> bytes:
         """Convert to data bytes.

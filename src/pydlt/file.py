@@ -1,6 +1,5 @@
 """ Provide class to handle DLT file. """
 import struct
-from io import SEEK_CUR
 from pathlib import Path
 from typing import Iterator, List, Optional, Union
 
@@ -80,17 +79,17 @@ class DltFileReader:
             Optional[DltMessage]: DLT message or None if not enough data to read
         """
         min_length = StorageHeader.DATA_LENGTH + StandardHeader.DATA_MIN_LENGTH
-        min_data = self._file.peek(min_length)
-        if len(min_data) < min_length:
+        msg_data = self._file.read(min_length)
+
+        if len(msg_data) < min_length:
             return None
         length = struct.unpack_from(
-            StandardHeader.STRUCT_MIN_FORMAT, min_data, StorageHeader.DATA_LENGTH
+            StandardHeader.STRUCT_MIN_FORMAT, msg_data, StorageHeader.DATA_LENGTH
         )[2]
         msg_length = StorageHeader.DATA_LENGTH + length
-        msg_data = self._file.peek(msg_length)
+        msg_data += self._file.read(msg_length - min_length)
         if len(msg_data) < msg_length:
             return None
-        self._file.seek(msg_length, SEEK_CUR)
         return DltMessage.create_from_bytes(msg_data, True, self._encoding)
 
     def read_messages(self) -> List[DltMessage]:
