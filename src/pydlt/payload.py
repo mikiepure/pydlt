@@ -277,11 +277,9 @@ class Argument(ABC):
         type_info = struct.unpack(f"{endian}I", data[: cls._TYPE_INFO_LENGTH])[0]
         type_info_base = type_info & MASK_BASE_TYPE
         if type_info_base == TypeInfo.TYPE_BOOL:
-            type_info_length = type_info & MASK_TYPE_LENGTH
-            if type_info_length == TypeInfo.TYPE_LENGTH_8BIT:
-                return ArgumentBool.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], msb_first
-                )
+            return ArgumentBool.from_data_payload(
+                data[cls._TYPE_INFO_LENGTH :], msb_first
+            )
         elif type_info_base == TypeInfo.TYPE_SIGNED:
             type_info_length = type_info & MASK_TYPE_LENGTH
             if type_info_length == TypeInfo.TYPE_LENGTH_8BIT:
@@ -363,7 +361,7 @@ class Argument(ABC):
         """
         raise NotImplementedError
 
-    def to_bytes(self, msb_first: Optional[bool] = None) -> bytes:
+    def to_bytes(self, msb_first: Optional[bool] = False) -> bytes:
         """Convert to data bytes.
 
         Args:
