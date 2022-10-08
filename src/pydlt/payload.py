@@ -23,24 +23,6 @@ class Payload(ABC):
             return self.to_bytes(False) == other.to_bytes(False)
         return False
 
-    @classmethod
-    @abstractmethod
-    def create_from_bytes(cls, data: bytes, msb_fitst: bool) -> "Payload":
-        """Create Payload object from data bytes.
-
-        Args:
-            data (bytes): Data bytes
-            msb_first (bool): If set, the payload data is in big endian format,
-                              else in little endian format.
-
-        Raises:
-            ValueError: It can be caused by invalid data format.
-
-        Returns:
-            Payload: New Payload object
-        """
-        raise NotImplementedError
-
     @abstractmethod
     def to_bytes(self, msb_first: Optional[bool] = None) -> bytes:
         """Convert to data bytes.
@@ -264,7 +246,9 @@ class Argument(ABC):
         raise NotImplementedError
 
     @classmethod
-    def create_from_bytes(cls, data: bytes, msb_first: bool) -> "Argument":
+    def create_from_bytes(
+        cls, data: bytes, msb_first: bool, encoding: Optional[str] = None
+    ) -> "Argument":
         """Create Argument object from data bytes.
 
         Raises:
@@ -332,7 +316,7 @@ class Argument(ABC):
             type_info_string_coding = type_info & MASK_STRING_CODING
             if type_info_string_coding == TypeInfo.STRING_CODING_ASCII:
                 return ArgumentString.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], False, msb_first
+                    data[cls._TYPE_INFO_LENGTH :], False, msb_first, encoding
                 )
             elif type_info_string_coding == TypeInfo.STRING_CODING_UTF8:
                 return ArgumentString.from_data_payload(
@@ -712,6 +696,7 @@ class ArgumentString(ArgumentByteBase):
         data: str,
         is_utf8: bool = False,
         msb_first: Optional[bool] = None,
+        encoding: Optional[str] = None,
     ):
         """Create argument of Type String.
 
@@ -720,10 +705,13 @@ class ArgumentString(ArgumentByteBase):
             is_utf8 (bool, optional): Encoding of the string is UTF-8 if True, or ASCII.
                                       Defaults to True (UTF-8).
             msb_first (Optional[bool], optional): [description]. Defaults to None.
+            encoding: custom 8-bit encoding that will be used for serialization
+                      Has no effect if is_utf8 is set to True
         """
         super().__init__(msb_first)
         self.data = data
         self.is_utf8 = is_utf8
+        self._encoding = self._encoding_format(is_utf8, encoding)
 
     def _to_str(self) -> str:
         return self.data
@@ -737,13 +725,17 @@ class ArgumentString(ArgumentByteBase):
 
     @classmethod
     def from_data_payload(
-        cls, data_payload: bytes, is_utf8: bool, msb_first: bool
+        cls,
+        data_payload: bytes,
+        is_utf8: bool,
+        msb_first: bool,
+        encoding: Optional[str] = None,
     ) -> "Argument":
         endian = ">" if msb_first else "<"
         length = struct.unpack(f"{endian}H", data_payload[: cls.LENGTH_SIZE])[0]
         return cls(
             data_payload[cls.LENGTH_SIZE : cls.LENGTH_SIZE + length - 1].decode(
-                cls._encoding_format(is_utf8), "replace"
+                cls._encoding_format(is_utf8, encoding), "replace"
             ),
             is_utf8,
             msb_first,
@@ -751,16 +743,16 @@ class ArgumentString(ArgumentByteBase):
 
     @property
     def data_length(self) -> int:
-        return len(self.data.encode(self._encoding_format(self.is_utf8), "replace")) + 1
+        return len(self.data.encode(self._encoding, "replace")) + 1
 
     def data_to_bytes(self) -> bytes:
-        return (
-            self.data.encode(self._encoding_format(self.is_utf8), "replace") + b"\x00"
-        )
+        return self.data.encode(self._encoding, "replace") + b"\x00"
 
     @staticmethod
-    def _encoding_format(is_utf8: bool) -> str:
-        return "utf-8" if is_utf8 else "ascii"
+    def _encoding_format(is_utf8: bool, encoding: str) -> str:
+        if encoding is None:
+            encoding = "ascii"
+        return "utf-8" if is_utf8 else encoding
 
 
 class ArgumentRaw(ArgumentByteBase):
@@ -806,7 +798,11 @@ class VerbosePayload(Payload):
 
     @classmethod
     def create_from_bytes(
-        cls, data: bytes, msb_first: bool, number_of_arguments: int
+        cls,
+        data: bytes,
+        msb_first: bool,
+        number_of_arguments: int,
+        encoding: Optional[str] = None,
     ) -> "VerbosePayload":
         """Create VerbosePayload object from data bytes.
 
@@ -814,6 +810,8 @@ class VerbosePayload(Payload):
             data (bytes): Data bytes
             msb_first (bool): If set, the payload data is in big endian format,
                               else in little endian format.
+            number_of_arguments: number of arguments within this payload data
+            encoding: optional non-standard 8-bit string encoding
 
         Raises:
             ValueError: It can be caused by invalid data format.
@@ -824,7 +822,7 @@ class VerbosePayload(Payload):
         arguments = []
         offset = 0
         for _ in range(number_of_arguments):
-            arg = Argument.create_from_bytes(data[offset:], msb_first)
+            arg = Argument.create_from_bytes(data[offset:], msb_first, encoding)
             arguments.append(arg)
             offset += arg.bytes_length
         return cls(arguments)

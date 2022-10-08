@@ -277,7 +277,9 @@ class DltMessage:
         return std_header
 
     @classmethod
-    def create_from_bytes(cls, data: bytes, with_storage_header: bool) -> "DltMessage":
+    def create_from_bytes(
+        cls, data: bytes, with_storage_header: bool, encoding: Optional[str] = None
+    ) -> "DltMessage":
         """Create DltMessage object from data bytes.
 
         Args:
@@ -313,6 +315,7 @@ class DltMessage:
                     data[seek_pos : std_header.length + str_header_length],
                     std_header.msb_first,
                     ext_header.number_of_arguments,
+                    encoding,
                 )
             else:
                 payload = NonVerbosePayload.create_from_bytes(

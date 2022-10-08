@@ -51,6 +51,22 @@ def test_string_representation():
     )
 
 
+def test_latin1_encoding():
+    msg = DltMessage.create_verbose_message(
+        [ArgumentString("120°C äöü", is_utf8=False, encoding="latin-1")],
+        MessageType.DLT_TYPE_LOG,
+        MessageLogInfo.DLT_LOG_INFO,
+        "Apid",
+        "Ctid",
+        timestamp=93678,  # 9.3678 sec
+        session_id=12345,
+        ecu_id="Ecu",
+        message_counter=119,
+    )
+    copy = msg.create_from_bytes(msg.to_bytes(), False, "latin-1")
+    assert str(copy) == "9.3678 119 Ecu Apid Ctid 12345 log info verbose 1 120°C äöü"
+
+
 def test_message_std_header():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
