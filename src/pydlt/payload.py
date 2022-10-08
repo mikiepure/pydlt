@@ -361,7 +361,7 @@ class Argument(ABC):
         """
         raise NotImplementedError
 
-    def to_bytes(self, msb_first: Optional[bool] = False) -> bytes:
+    def to_bytes(self, msb_first: Optional[bool] = None) -> bytes:
         """Convert to data bytes.
 
         Args:
