@@ -11,6 +11,13 @@ from typing import List, Optional, Union
 # in AUTOSAR Specification of Diagnostic Log and Trace V1.2.0 R4.0 Rev3
 ###############################################################################
 
+msb_first_default: Optional[bool] = False
+"""Default value of endian of the payload data
+
+The value will be used when casting the object to bytes,
+if endian is not set by argument and field value of endian type is not defined.
+"""
+
 
 class Payload(ABC):
     """The Payload of a DLT Message."""
@@ -28,8 +35,15 @@ class Payload(ABC):
         """Convert to data bytes.
 
         Args:
-            msb_first (Optional[bool]): If set, the payload data is in big endian,
-                                        else in little endian.
+            msb_first:  True - Handle payload data as big endian
+                       False - Handle payload data as little endian
+                        None - Handle payload data according to field value of endian
+                               type. The value of msb_first_default is used
+                               if field value of endian type is also None.
+                               Raise ValueError if both are None.
+
+        Raises:
+            ValueError: Both field value of endian type and msb_first_default are None
 
         Returns:
             bytes: Converted data bytes
@@ -119,8 +133,15 @@ class NonVerbosePayload(Payload):
         """Convert to data bytes.
 
         Args:
-            msb_first (Optional[bool]): If set, the payload data is in big endian,
-                                        else in little endian.
+            msb_first:  True - Handle payload data as big endian
+                       False - Handle payload data as little endian
+                        None - Handle payload data according to field value of endian
+                               type. The value of msb_first_default is used
+                               if field value of endian type is also None.
+                               Raise ValueError if both are None.
+
+        Raises:
+            ValueError: Both field value of endian type and msb_first_default are None
 
         Returns:
             bytes: Converted data bytes
@@ -129,6 +150,8 @@ class NonVerbosePayload(Payload):
             endian = ">" if msb_first else "<"
         elif self.msb_first is not None:
             endian = ">" if self.msb_first else "<"
+        elif msb_first_default is not None:
+            endian = ">" if msb_first_default else "<"
         else:
             raise ValueError("Endian is not known")
         return struct.pack(f"{endian}I", self.message_id) + self.non_static_data
@@ -349,8 +372,15 @@ class Argument(ABC):
         """Convert to data bytes.
 
         Args:
-            msb_first (Optional[bool]): If set, the payload data is in big endian,
-                                        else in little endian.
+            msb_first:  True - Handle payload data as big endian
+                       False - Handle payload data as little endian
+                        None - Handle payload data according to field value of endian
+                               type. The value of msb_first_default is used
+                               if field value of endian type is also None.
+                               Raise ValueError if both are None.
+
+        Raises:
+            ValueError: Both field value of endian type and msb_first_default are None
 
         Returns:
             bytes: Converted data bytes
@@ -359,6 +389,8 @@ class Argument(ABC):
             endian = ">" if msb_first else "<"
         elif self.msb_first is not None:
             endian = ">" if self.msb_first else "<"
+        elif msb_first_default is not None:
+            endian = ">" if msb_first_default else "<"
         else:
             raise ValueError("Endian is not known")
         return struct.pack(f"{endian}I", self._type_info) + self.data_payload_to_bytes(
@@ -454,6 +486,8 @@ class ArgumentNumBase(Argument):
             endian = ">" if msb_first else "<"
         elif self.msb_first is not None:
             endian = ">" if self.msb_first else "<"
+        elif msb_first_default is not None:
+            endian = ">" if msb_first_default else "<"
         else:
             raise ValueError("Endian is not known")
         return struct.pack(f"{endian}{self._struct_format()}", self.data)
@@ -679,6 +713,8 @@ class ArgumentByteBase(Argument):
             endian = ">" if msb_first else "<"
         elif self.msb_first is not None:
             endian = ">" if self.msb_first else "<"
+        elif msb_first_default is not None:
+            endian = ">" if msb_first_default else "<"
         else:
             raise ValueError("Endian is not known")
         return struct.pack(f"{endian}H", self.data_length) + self.data_to_bytes()
@@ -829,8 +865,15 @@ class VerbosePayload(Payload):
         """Convert to data bytes.
 
         Args:
-            msb_first (Optional[bool]): If set, the payload data is in big endian,
-                                        else in little endian.
+            msb_first:  True - Handle payload data as big endian
+                       False - Handle payload data as little endian
+                        None - Handle payload data according to field value of endian
+                               type. The value of msb_first_default is used
+                               if field value of endian type is also None.
+                               Raise ValueError if both are None.
+
+        Raises:
+            ValueError: Both field value of endian type and msb_first_default are None
 
         Returns:
             bytes: Converted data bytes
