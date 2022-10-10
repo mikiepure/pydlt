@@ -396,14 +396,6 @@ def test_message_verbose_payload_bool():
     assert cast(ArgumentBool, dlt_message2.verbose_payload.arguments[1]).data is True
 
 
-def test_bool_payload_without_type_length():
-    b1 = ArgumentBool(True)
-    dlt_bytes = bytearray(b1.to_bytes(False))
-    # clear the TypeInfo.TYPE_LENGTH_8BIT flag
-    dlt_bytes[0] = 0x10
-    assert Argument.create_from_bytes(dlt_bytes, False).data is True
-
-
 def test_message_verbose_payload_uint():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
