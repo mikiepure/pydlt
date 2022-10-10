@@ -43,7 +43,8 @@ class Payload(ABC):
                                Raise ValueError if both are None.
 
         Raises:
-            ValueError: Both field value of endian type and msb_first_default are None
+            ValueError: All endian type of the argument, field value,
+                        and msb_first_default are None
 
         Returns:
             bytes: Converted data bytes
@@ -141,7 +142,8 @@ class NonVerbosePayload(Payload):
                                Raise ValueError if both are None.
 
         Raises:
-            ValueError: Both field value of endian type and msb_first_default are None
+            ValueError: All endian type of the argument, field value,
+                        and msb_first_default are None
 
         Returns:
             bytes: Converted data bytes
@@ -380,7 +382,8 @@ class Argument(ABC):
                                Raise ValueError if both are None.
 
         Raises:
-            ValueError: Both field value of endian type and msb_first_default are None
+            ValueError: All endian type of the argument, field value,
+                        and msb_first_default are None
 
         Returns:
             bytes: Converted data bytes
@@ -873,7 +876,8 @@ class VerbosePayload(Payload):
                                Raise ValueError if both are None.
 
         Raises:
-            ValueError: Both field value of endian type and msb_first_default are None
+            ValueError: All endian type of the argument, field value,
+                        and msb_first_default are None
 
         Returns:
             bytes: Converted data bytes
