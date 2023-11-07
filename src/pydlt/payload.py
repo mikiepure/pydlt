@@ -256,7 +256,6 @@ class TypeInfo(IntEnum):
 
 
 class Argument(ABC):
-
     _TYPE_INFO_LENGTH = 4
 
     def __init__(self, msb_first: Optional[bool]):
@@ -786,7 +785,7 @@ class ArgumentString(ArgumentByteBase):
         return self.data.encode(self._encoding, "replace") + b"\x00"
 
     @staticmethod
-    def _encoding_format(is_utf8: bool, encoding: str) -> str:
+    def _encoding_format(is_utf8: bool, encoding: Optional[str]) -> str:
         if encoding is None:
             encoding = "ascii"
         return "utf-8" if is_utf8 else encoding

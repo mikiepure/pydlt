@@ -1,6 +1,7 @@
-import pytest
+from typing import cast
 
 import pydlt.payload as payload
+import pytest
 from pydlt import Argument, ArgumentBool
 
 
@@ -9,7 +10,7 @@ def test_bool_payload_without_type_length():
     dlt_bytes = bytearray(b1.to_bytes(False))
     # clear the TypeInfo.TYPE_LENGTH_8BIT flag
     dlt_bytes[0] = 0x10
-    assert Argument.create_from_bytes(dlt_bytes, False).data is True
+    assert cast(ArgumentBool, Argument.create_from_bytes(dlt_bytes, False)).data is True
 
 
 def test_bool_endian():

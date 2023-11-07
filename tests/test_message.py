@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import List, cast
 
 import pytest
-
 from pydlt import (
     Argument,
     ArgumentBool,
@@ -334,6 +333,7 @@ def test_message_ext_header():
     path.write_bytes(dlt_bytes)
 
     dlt_message2 = DltMessage.create_from_bytes(dlt_bytes, True)
+    assert dlt_message2.ext_header is not None
     assert dlt_message2.ext_header.message_type == MessageType.DLT_TYPE_LOG
     assert dlt_message2.ext_header.message_log_info == MessageLogInfo.DLT_LOG_INFO
     assert dlt_message2.ext_header.application_id == "App"
@@ -355,6 +355,7 @@ def test_message_ext_header_min():
     path.write_bytes(dlt_bytes)
 
     dlt_message2 = DltMessage.create_from_bytes(dlt_bytes, True)
+    assert dlt_message2.ext_header is not None
     assert dlt_message2.ext_header.message_type == MessageType.DLT_TYPE_LOG
     assert dlt_message2.ext_header.message_log_info == MessageLogInfo.DLT_LOG_FATAL
     assert dlt_message2.ext_header.application_id == ""
@@ -376,6 +377,7 @@ def test_message_ext_header_max():
     path.write_bytes(dlt_bytes)
 
     dlt_message2 = DltMessage.create_from_bytes(dlt_bytes, True)
+    assert dlt_message2.ext_header is not None
     assert dlt_message2.ext_header.message_type == MessageType.DLT_TYPE_NW_TRACE
     assert dlt_message2.ext_header.message_log_info == MessageBusInfo.DLT_NW_TRACE_MOST
     assert dlt_message2.ext_header.application_id == "AppX"
@@ -487,7 +489,8 @@ def test_message_verbose_payload_string():
         == "abc123XYZ!"
     )
     assert (
-        cast(ArgumentString, dlt_message2.verbose_payload.arguments[1]).data == "あいうえお"
+        cast(ArgumentString, dlt_message2.verbose_payload.arguments[1]).data
+        == "あいうえお"
     )
 
 

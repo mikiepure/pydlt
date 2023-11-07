@@ -2,16 +2,16 @@
 
 Set-Location ".."
 
-Write-Host "Checking flake8..."
-poetry run flake8
+Write-Host "Checking ruff check..."
+poetry run ruff check .
 if ($LastExitCode -ne 0) {
-    Stop-Shell "Failed to check flake8 by error: $LastExitCode" 1
+    Stop-Shell "Failed to check ruff check by error: $LastExitCode" 1
 }
 
-Write-Host "Checking black..."
-poetry run black --check --diff .
+Write-Host "Checking ruff format..."
+poetry run ruff format . --check
 if ($LastExitCode -ne 0) {
-    Stop-Shell "Failed to check black by error: $LastExitCode" 1
+    Stop-Shell "Failed to check ruff format by error: $LastExitCode" 1
 }
 
 Write-Host "Checking pytest..."
