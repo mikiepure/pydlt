@@ -2,7 +2,7 @@
 # For more information see:
 # https://github.com/marketplace/actions/publish-python-poetry-package
 
-name: Python package
+name: CD
 on:
   push:
     tags:
@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build and publish to pypi
-        uses: JRubics/poetry-publish@v1.13
+        uses: JRubics/poetry-publish@v1.17
         with:
           pypi_token: ${{ secrets.PYPI_TOKEN }}
-          plugins: "poetry-dynamic-versioning-plugin"
+          plugins: "poetry-dynamic-versioning[plugin]"
