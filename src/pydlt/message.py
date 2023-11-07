@@ -184,7 +184,7 @@ class DltMessage:
         message_counter: int = 0,
         version_number: int = 1,
         msb_first: bool = False,
-        str_header: StorageHeader = None,
+        str_header: Optional[StorageHeader] = None,
     ) -> "DltMessage":
         """Create DltMessage object as Non-Verbose mode.
 
@@ -218,7 +218,7 @@ class DltMessage:
         message_counter: int = 0,
         version_number: int = 1,
         msb_first: bool = False,
-        str_header: StorageHeader = None,
+        str_header: Optional[StorageHeader] = None,
     ) -> "DltMessage":
         """Create DltMessage object as Verbose mode.
 
@@ -309,8 +309,7 @@ class DltMessage:
             seek_pos += ext_header.bytes_length
         payload = None
         if std_header.length > std_header.bytes_length + ext_header_length:
-            is_verbose = ext_header is not None and ext_header.verbose is True
-            if is_verbose:
+            if ext_header is not None and ext_header.verbose is True:
                 payload = VerbosePayload.create_from_bytes(
                     data[seek_pos : std_header.length + str_header_length],
                     std_header.msb_first,
