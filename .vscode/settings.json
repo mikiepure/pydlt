@@ -1,17 +1,16 @@
 {
   "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python",
-  "python.linting.enabled": true,
-  "python.linting.pylintEnabled": false,
-  "python.linting.flake8Enabled": true,
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.diagnosticMode": "workspace",
   "[python]": {
     "files.insertFinalNewline": true,
     "editor.rulers": [88],
-    "editor.formatOnType": true,
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
+      "source.fixAll": true,
       "source.organizeImports": true
-    }
+    },
+    "editor.defaultFormatter": "charliermarsh.ruff"
   },
-  "python.formatting.provider": "black",
   "python.testing.pytestEnabled": true
 }

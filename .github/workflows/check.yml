@@ -1,5 +1,5 @@
 # This workflow will install Python dependencies and poetry
-# It runs pytest, flake8 and black
+# It runs ruff and pytest
 
 name: CI
 on:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.6", "3.8", "3.10"]
+        python-version: ["3.8", "3.10", "3.12"]
         poetry-version: ["1.1.15"]
 
     steps:
@@ -30,9 +30,9 @@ jobs:
           poetry-version: ${{ matrix.poetry-version }}
       - name: poetry install
         run: poetry install
-      - name: Lint with flake8
-        run: poetry run flake8
+      - name: Lint with ruff
+        run: poetry run ruff check .
+      - name: Format with ruff
+        run: poetry run ruff format . --check
       - name: Test with pytest
         run: poetry run pytest
-      - name: Check code style
-        run: poetry run black --check --diff .

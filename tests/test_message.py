@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import List, cast
 
 import pytest
-
 from pydlt import (
     Argument,
     ArgumentBool,
@@ -487,7 +486,8 @@ def test_message_verbose_payload_string():
         == "abc123XYZ!"
     )
     assert (
-        cast(ArgumentString, dlt_message2.verbose_payload.arguments[1]).data == "あいうえお"
+        cast(ArgumentString, dlt_message2.verbose_payload.arguments[1]).data
+        == "あいうえお"
     )
 
 

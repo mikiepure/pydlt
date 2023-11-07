@@ -1,5 +1,9 @@
 {
   "venv": ".venv",
-  "reportMissingTypeStubs": true,
-  "typingsPath": "./Typestubs"
+  "pythonVersion": "3.8",
+  "executionEnvironments": [
+    {
+      "root": "src/pydlt"
+    }
+  ]
 }

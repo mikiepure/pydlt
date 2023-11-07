@@ -6,6 +6,7 @@
   "recommendations": [
     "ms-python.python",
     "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
     "njpwerner.autodocstring"
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.

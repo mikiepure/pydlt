@@ -256,7 +256,6 @@ class TypeInfo(IntEnum):
 
 
 class Argument(ABC):
-
     _TYPE_INFO_LENGTH = 4
 
     def __init__(self, msb_first: Optional[bool]):
