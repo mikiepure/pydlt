@@ -1,10 +1,10 @@
 """Provide definition of Service ID of DLT control message.
 
-It can be checked at following sections:
+It can be checked at the section "5.3 Services / Commands"
+in AUTOSAR Log and Trace Protocol Specification R22-11.
 
-- 7.1.1 Control messages
-
-in AUTOSAR Specification of Diagnostic Log and Trace V1.2.0 R4.3.1
+For others, including deprecated, are listed at the section "7.7.7.1 Control messages"
+in AUTOSAR Specification of Diagnostic Log and Trace V1.2.0 R4.0 Rev3.
 """
 from enum import IntEnum
 
@@ -37,16 +37,21 @@ class ServiceId(IntEnum):
     GET_COM_INTERFACE_NAMES = 0x17
     GET_COM_INTERFACE_MAX_BANDWIDTH = 0x18
     GET_VERBOSE_MODE_STATUS = 0x19
-    SET_LOG_CHANNEL_ASSIGNMENT = 0x20
-    SET_LOG_CHANNEL_THRESHOLD = 0x21
-    GET_LOG_CHANNEL_THRESHOLD = 0x22
-    GET_BUFFER_OVERFLOW_NOTIFICATION = 0x23  # original name: BufferOverflowNotification
     GET_MESSAGE_FILTERING_STATUS = 0x1A
     GET_USE_ECU_ID = 0x1B
     GET_USE_SESSION_ID = 0x0C
     GET_USE_TIMESTAMP = 0x1D
     GET_USE_EXTENDED_HEADER = 0x1E  # original service name: UseExtendedHeader
     GET_TRACE_STATUS = 0x1F
+    SET_LOG_CHANNEL_ASSIGNMENT = 0x20
+    SET_LOG_CHANNEL_THRESHOLD = 0x21
+    GET_LOG_CHANNEL_THRESHOLD = 0x22
+    GET_BUFFER_OVERFLOW_NOTIFICATION = 0x23  # original name: BufferOverflowNotification
+    SET_LOG_LEVEL_LONG = 0x25
+    SET_TRACE_STATUS_LONG = 0x26
+    GET_LOG_INFO_LONG = 0x27
+    GET_TRACE_STATUS_LONG = 0x28
+    SET_LOG_CHANNEL_ASSIGNMENT_LONG = 0x29
     CALL_SW_C_INJECTION_BEGIN = 0xFFF
     # service name: CallSW-CInjection has a range: 0xFFF ... 0xFFFFFFFF
     CALL_SW_C_INJECTION_END = 0xFFFFFFFF
