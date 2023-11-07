@@ -2,9 +2,9 @@
 
 It can be checked at following sections:
 
-- 7.7.7.1 Control messages
+- 7.1.1 Control messages
 
-in AUTOSAR Specification of Diagnostic Log and Trace V1.2.0 R4.0 Rev3
+in AUTOSAR Specification of Diagnostic Log and Trace V1.2.0 R4.3.1
 """
 from enum import IntEnum
 
@@ -21,7 +21,7 @@ class ServiceId(IntEnum):
     SET_COM_INTERFACE_STATUS = 0x07
     SET_COM_INTERFACE_MAX_BANDWIDTH = 0x08
     SET_VERBOSE_MODE = 0x09
-    SET_MESSAGE_FILTERERING = 0x0A
+    SET_MESSAGE_FILTERING = 0x0A
     SET_TIMING_PACKETS = 0x0B
     GET_LOCAL_TIME = 0x0C
     SET_USE_ECU_ID = 0x0D
@@ -37,11 +37,16 @@ class ServiceId(IntEnum):
     GET_COM_INTERFACE_NAMES = 0x17
     GET_COM_INTERFACE_MAX_BANDWIDTH = 0x18
     GET_VERBOSE_MODE_STATUS = 0x19
-    GET_MESSAGE_FILTERERING_STATUS = 0x1A
+    SET_LOG_CHANNEL_ASSIGNMENT = 0x20
+    SET_LOG_CHANNEL_THRESHOLD = 0x21
+    GET_LOG_CHANNEL_THRESHOLD = 0x22
+    GET_BUFFER_OVERFLOW_NOTIFICATION = 0x23  # original name: BufferOverflowNotification
+    GET_MESSAGE_FILTERING_STATUS = 0x1A
     GET_USE_ECU_ID = 0x1B
     GET_USE_SESSION_ID = 0x0C
     GET_USE_TIMESTAMP = 0x1D
     GET_USE_EXTENDED_HEADER = 0x1E  # original service name: UseExtendedHeader
+    GET_TRACE_STATUS = 0x1F
     CALL_SW_C_INJECTION_BEGIN = 0xFFF
     # service name: CallSW-CInjection has a range: 0xFFF ... 0xFFFFFFFF
     CALL_SW_C_INJECTION_END = 0xFFFFFFFF
