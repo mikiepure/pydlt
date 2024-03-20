@@ -1,0 +1,50 @@
+Hello, but sorry to commit this txt file to your repo.
+First, thanks a lot for your awesome work in this repo.
+Recently I used this repo for reading and writing *.dlt files in my project.
+I found that it can not write the message with utf-8 encoding payload content to dlt files.
+
+For example:
+
+import os
+import shutil
+from pydlt import DltFileReader, DltFileWriter
+
+def read_and_write_back_dlt_file(dlt_file_path, output_dlt_file):
+    msg_list = []
+    # Read DLT messages from file
+    for msg in DltFileReader(dlt_file_path, encoding="utf-8"):
+        msg_list.append(msg)
+    sorted_msg_list = sorted(msg_list, key=lambda d: d.std_header.timestamp)
+    # Write DLT messages to file
+    with DltFileWriter(output_dlt_file) as writer:
+        writer.write_messages(sorted_msg_list)
+
+
+
+But after I changed the method as following, it worked:
+
+
+import os
+import shutil
+from pydlt import DltFileReader, DltFileWriter
+
+def read_and_write_back_dlt_file(dlt_file_path, output_dlt_file):
+    msg_list = []
+    # Read DLT messages from file
+    for msg in DltFileReader(dlt_file_path, encoding="utf-8"):
+        msg_list.append(msg)
+    sorted_msg_list = sorted(msg_list, key=lambda d: d.std_header.timestamp)
+    # Write DLT messages to file
+    with DltFileWriter(output_dlt_file) as writer:
+        # writer.write_messages(sorted_msg_list)
+        for msg in sorted_msg_list:
+            msg.payload.arguments[0].is_utf8 = True
+            msg.payload.arguments[0]._encoding = "utf-8"
+            writer.write_message(msg)
+
+
+Do you notice that I changed the properties "is_utf8" and "_encoding" before writing messages to the dlt file?
+I think there will be better solutions for such circumstance, don't you?
+
+By the way, I can not submit an issue to this repo for some reason I don't know, that's why I submit this txt file.
+Sorry again.
