@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 
 import pytest
-
 from pydlt import (
     ArgumentString,
     DltFileReader,
@@ -130,7 +129,7 @@ def test_quick_start():
 
 def test_file_encoding():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
-    msg1 = DltMessage.create_verbose_message(
+    msg_latin1 = DltMessage.create_verbose_message(
         [ArgumentString("100°C äöü", encoding="latin-1")],
         MessageType.DLT_TYPE_LOG,
         MessageLogInfo.DLT_LOG_INFO,
@@ -139,12 +138,53 @@ def test_file_encoding():
         str_header=StorageHeader(0, 0, "Ecu"),
     )
     with DltFileWriter(path) as writer:
-        writer.write_messages([msg1])
+        writer.write_messages([msg_latin1])
 
     with DltFileReader(path, encoding="latin-1") as reader:
         msg = reader.read_message()
         assert msg is not None
         assert str(msg.payload) == "100°C äöü"
+        assert msg_latin1.to_bytes() == msg.to_bytes()
+
+
+def test_file_encoding_utf8():
+    path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
+    msg_utf8 = DltMessage.create_verbose_message(
+        [ArgumentString("あいうえお", encoding="utf-8")],
+        MessageType.DLT_TYPE_LOG,
+        MessageLogInfo.DLT_LOG_INFO,
+        "App",
+        "Ctx",
+        str_header=StorageHeader(0, 0, "Ecu"),
+    )
+    with DltFileWriter(path) as writer:
+        writer.write_messages([msg_utf8])
+
+    with DltFileReader(path, encoding="utf-8") as reader:
+        msg = reader.read_message()
+        assert msg is not None
+        assert str(msg.payload) == "あいうえお"
+        assert msg_utf8.to_bytes() == msg.to_bytes()
+
+
+def test_file_utf8():
+    path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
+    msg_utf8 = DltMessage.create_verbose_message(
+        [ArgumentString("あいうえお", True)],
+        MessageType.DLT_TYPE_LOG,
+        MessageLogInfo.DLT_LOG_INFO,
+        "App",
+        "Ctx",
+        str_header=StorageHeader(0, 0, "Ecu"),
+    )
+    with DltFileWriter(path) as writer:
+        writer.write_messages([msg_utf8])
+
+    with DltFileReader(path) as reader:
+        msg = reader.read_message()
+        assert msg is not None
+        assert str(msg.payload) == "あいうえお"
+        assert msg_utf8.to_bytes() == msg.to_bytes()
 
 
 def _make_dlt_message():

@@ -1,4 +1,5 @@
-""" Provide class to handle DLT file. """
+"""Provide class to handle DLT file."""
+
 import struct
 from pathlib import Path
 from typing import Iterator, List, Optional, Union
