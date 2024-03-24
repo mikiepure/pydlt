@@ -739,7 +739,7 @@ class ArgumentString(ArgumentByteBase):
         Args:
             data (str): A data payload of string.
             is_utf8 (bool, optional): Encoding of the string is UTF-8 if True, or ASCII.
-                                      Defaults to True (UTF-8).
+                                      Defaults to False (ASCII).
             msb_first (Optional[bool], optional): [description]. Defaults to None.
             encoding: custom 8-bit encoding that will be used for serialization
                       Has no effect if is_utf8 is set to True
@@ -769,12 +769,14 @@ class ArgumentString(ArgumentByteBase):
     ) -> "Argument":
         endian = ">" if msb_first else "<"
         length = struct.unpack(f"{endian}H", data_payload[: cls.LENGTH_SIZE])[0]
+        encoding_format = cls._encoding_format(is_utf8, encoding)
         return cls(
             data_payload[cls.LENGTH_SIZE : cls.LENGTH_SIZE + length - 1].decode(
-                cls._encoding_format(is_utf8, encoding), "replace"
+                encoding_format, "replace"
             ),
             is_utf8,
             msb_first,
+            encoding_format,
         )
 
     @property

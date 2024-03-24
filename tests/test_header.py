@@ -1,12 +1,12 @@
 import sys
-import pytest
 
+import pytest
 from pydlt import (
-    StorageHeader,
-    StandardHeader,
     ExtendedHeader,
-    MessageType,
     MessageLogInfo,
+    MessageType,
+    StandardHeader,
+    StorageHeader,
 )
 
 
