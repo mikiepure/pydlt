@@ -6,6 +6,7 @@ in AUTOSAR Log and Trace Protocol Specification R22-11.
 For others, including deprecated, are listed at the section "7.7.7.1 Control messages"
 in AUTOSAR Specification of Diagnostic Log and Trace V1.2.0 R4.0 Rev3.
 """
+
 from enum import IntEnum
 
 

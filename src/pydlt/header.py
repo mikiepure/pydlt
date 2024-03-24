@@ -1,4 +1,5 @@
-"""Provide header class of the DLT protocol. """
+"""Provide header class of the DLT protocol."""
+
 import struct
 from enum import IntEnum
 from typing import Optional, cast
@@ -500,7 +501,7 @@ class StorageHeader:
     DATA_LENGTH = 16
 
     # "DLT"+0x01
-    DLT_PATTERN = b"\x44\x4C\x54\x01"
+    DLT_PATTERN = b"\x44\x4c\x54\x01"
 
     # struct format for pack/unpack
     STRUCT_FORMAT = "<Ii4s"

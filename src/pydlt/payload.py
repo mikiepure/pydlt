@@ -1,4 +1,5 @@
-"""Provide payload class of the DLT protocol. """
+"""Provide payload class of the DLT protocol."""
+
 import struct
 from abc import ABC, abstractmethod
 from enum import IntEnum

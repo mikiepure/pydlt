@@ -1,4 +1,5 @@
-""" Provide message class of the DLT protocol. """
+"""Provide message class of the DLT protocol."""
+
 from datetime import datetime, timezone
 from typing import List, Optional, cast
 
