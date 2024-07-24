@@ -1,5 +1,6 @@
 """Provide class to handle DLT file."""
 
+import io
 import struct
 from pathlib import Path
 from typing import Iterator, List, Optional, Union
@@ -25,7 +26,7 @@ class DltFileReader:
             # handle each message
     """
 
-    def __init__(self, path: Union[str, Path], encoding: Optional[str] = None) -> None:
+    def __init__(self, path: Union[str, Path, io.IOBase], encoding: Optional[str] = None) -> None:
         """Create DltFileReader object.
 
         Open a file of the path in the constructor.
@@ -42,7 +43,10 @@ class DltFileReader:
                       However, some implementations store dlt strings in a local 8-bit
                       format (e.g. latin-1) instead of plain ascii.
         """
-        self._file = open(str(path), "rb")
+        if isinstance(path, (str, Path)):
+            self._file = open(str(path), "rb")
+        elif isinstance(path, io.IOBase):
+            self._file = path
         self._encoding = encoding
 
     def __enter__(self) -> "DltFileReader":
