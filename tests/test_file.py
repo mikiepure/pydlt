@@ -17,7 +17,26 @@ TEST_RESULTS_DIR_PATH = CURRENT_DIR_PATH / "results"
 TEST_RESULTS_DIR_PATH.mkdir(exist_ok=True)
 
 
-def test_file():
+def test_file_str():
+    path = str(TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt"))
+
+    writer = DltFileWriter(path)
+    assert writer.closed is False
+    writer.write_message(_make_dlt_message())
+    writer.write_message(_make_dlt_message())
+    writer.close()
+    assert writer.closed is True
+
+    reader = DltFileReader(path)
+    assert reader.closed is False
+    assert reader.read_message() is not None
+    assert reader.read_message() is not None
+    assert reader.read_message() is None
+    reader.close()
+    assert reader.closed is True
+
+
+def test_file_path():
     path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
 
     writer = DltFileWriter(path)
@@ -27,6 +46,27 @@ def test_file():
     writer.close()
     assert writer.closed is True
 
+    reader = DltFileReader(path)
+    assert reader.closed is False
+    assert reader.read_message() is not None
+    assert reader.read_message() is not None
+    assert reader.read_message() is None
+    reader.close()
+    assert reader.closed is True
+
+
+def test_file_iobase():
+    path = TEST_RESULTS_DIR_PATH / Path(f"{sys._getframe().f_code.co_name}.dlt")
+    file = path.open("wb")
+
+    writer = DltFileWriter(file)
+    assert writer.closed is False
+    writer.write_message(_make_dlt_message())
+    writer.write_message(_make_dlt_message())
+    writer.close()
+    assert writer.closed is True
+
+    file = path.open("rb")
     reader = DltFileReader(path)
     assert reader.closed is False
     assert reader.read_message() is not None
