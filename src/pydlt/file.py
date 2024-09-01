@@ -1,7 +1,7 @@
 """Provide class to handle DLT file."""
 
-import io
 import struct
+from io import IOBase
 from pathlib import Path
 from typing import Iterator, List, Optional, Union
 
@@ -26,7 +26,9 @@ class DltFileReader:
             # handle each message
     """
 
-    def __init__(self, path: Union[str, Path, io.IOBase], encoding: Optional[str] = None) -> None:
+    def __init__(
+        self, path: Union[str, Path, IOBase], encoding: Optional[str] = None
+    ) -> None:
         """Create DltFileReader object.
 
         Open a file of the path in the constructor.
@@ -37,15 +39,19 @@ class DltFileReader:
         close() method does not have to be called if using it.
 
         Args:
-            path (Union[str, Path]): A path to file.
+            path (Union[str, Path, IOBase]): A path to file or file stream.
+                                             IOBase object must supports
+                                             BinaryIO read operation.
             encoding: encoding that will be used for parsing non-utf-8 dlt strings
                       The dlt specification only supports ascii and utf-8 explicitly.
                       However, some implementations store dlt strings in a local 8-bit
                       format (e.g. latin-1) instead of plain ascii.
+        Raises:
+            OSError: Failed to open path as a file stream.
         """
         if isinstance(path, (str, Path)):
             self._file = open(str(path), "rb")
-        elif isinstance(path, io.IOBase):
+        elif isinstance(path, IOBase):
             self._file = path
         self._encoding = encoding
 
@@ -57,7 +63,8 @@ class DltFileReader:
 
     def close(self) -> None:
         """Close a file opened by the class."""
-        self._file.close()
+        if not self._file.closed:
+            self._file.close()
 
     @property
     def closed(self) -> bool:
@@ -88,6 +95,7 @@ class DltFileReader:
 
         if len(msg_data) < min_length:
             return None
+        # get DLT message length from standard header
         length = struct.unpack_from(
             StandardHeader.STRUCT_MIN_FORMAT, msg_data, StorageHeader.DATA_LENGTH
         )[2]
@@ -119,7 +127,7 @@ class DltFileWriter:
             writer.write_messages(messages)
     """
 
-    def __init__(self, path: Union[str, Path], append: bool = False) -> None:
+    def __init__(self, path: Union[str, Path, IOBase], append: bool = False) -> None:
         """Create DltFileWriter object.
 
         Open a file of the path in the constructor.
@@ -130,11 +138,18 @@ class DltFileWriter:
         close() method does not have to be called if using it.
 
         Args:
-            path (Union[str, Path]): A path to file.
+            path (Union[str, Path, IOBase]): A path to file or file stream.
+                                             IOBase object must supports
+                                             BinaryIO write operation.
             append (bool, optional): Set True if append mode. Defaults to False.
+        Raises:
+            OSError: Failed to open path as a file stream.
         """
-        mode = "ab" if append else "wb"
-        self._file = open(path, mode)
+        if isinstance(path, (str, Path)):
+            mode = "ab" if append else "wb"
+            self._file = open(str(path), mode)
+        elif isinstance(path, IOBase):
+            self._file = path
 
     def __enter__(self) -> "DltFileWriter":
         return self
@@ -144,7 +159,8 @@ class DltFileWriter:
 
     def close(self) -> None:
         """Close a file opened by the class."""
-        self._file.close()
+        if not self._file.closed:
+            self._file.close()
 
     @property
     def closed(self) -> bool:
@@ -169,4 +185,5 @@ class DltFileWriter:
         Args:
             messages (List[DltMessage]): DLT messages
         """
-        [self.write_message(message) for message in messages]
+        for message in messages:
+            self.write_message(message)
