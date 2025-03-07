@@ -1,6 +1,7 @@
 """Provide payload class of the DLT protocol."""
 
 import struct
+import warnings
 from abc import ABC, abstractmethod
 from enum import IntEnum
 from typing import List, Optional, Union
@@ -285,70 +286,268 @@ class Argument(ABC):
         endian = ">" if msb_first else "<"
         type_info = struct.unpack(f"{endian}I", data[: cls._TYPE_INFO_LENGTH])[0]
         type_info_base = type_info & MASK_BASE_TYPE
+        more_than_args_data = data[cls._TYPE_INFO_LENGTH :]
+        more_than_args_data_len = len(more_than_args_data)
         if type_info_base == TypeInfo.TYPE_BOOL:
-            return ArgumentBool.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
+            return ArgumentBool.from_data_payload(more_than_args_data, msb_first)
         elif type_info_base == TypeInfo.TYPE_SIGNED:
             type_info_length = type_info & MASK_TYPE_LENGTH
-            if type_info_length == TypeInfo.TYPE_LENGTH_8BIT:
-                return ArgumentSInt8.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], msb_first
-                )
-            elif type_info_length == TypeInfo.TYPE_LENGTH_16BIT:
-                return ArgumentSInt16.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], msb_first
-                )
+            if type_info_length == TypeInfo.TYPE_LENGTH_64BIT:
+                if (
+                    more_than_args_data_len
+                    >= ArgumentSInt64.data_payload_numbase_length()
+                ):
+                    return ArgumentSInt64.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentSInt32.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 64 bit signed integer {more_than_args_data} "
+                        "is not enough, handle it as 32 bit signed integer."
+                    )
+                    return ArgumentSInt32.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentSInt16.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 64 bit signed integer {more_than_args_data} "
+                        "is not enough, handle it as 16 bit signed integer."
+                    )
+                    return ArgumentSInt16.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentSInt8.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 64 bit signed integer {more_than_args_data} "
+                        "is not enough, handle it as 8 bit signed integer."
+                    )
+                    return ArgumentSInt8.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                else:
+                    raise ValueError(
+                        "There is no data for 64 bit signed integer "
+                        f"TypeInfo: {bin(type_info)}"
+                    )
             elif type_info_length == TypeInfo.TYPE_LENGTH_32BIT:
-                return ArgumentSInt32.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], msb_first
-                )
-            elif type_info_length == TypeInfo.TYPE_LENGTH_64BIT:
-                return ArgumentSInt64.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], msb_first
-                )
+                if (
+                    more_than_args_data_len
+                    >= ArgumentSInt32.data_payload_numbase_length()
+                ):
+                    return ArgumentSInt32.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentSInt16.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 32 bit signed integer {more_than_args_data} "
+                        "is not enough, handle it as 16 bit signed integer."
+                    )
+                    return ArgumentSInt16.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentSInt8.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 32 bit signed integer {more_than_args_data} "
+                        "is not enough, handle it as 8 bit signed integer."
+                    )
+                    return ArgumentSInt8.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                else:
+                    raise ValueError(
+                        "There is no data for 32 bit signed integer "
+                        f"TypeInfo: {bin(type_info)}"
+                    )
+            elif type_info_length == TypeInfo.TYPE_LENGTH_16BIT:
+                if (
+                    more_than_args_data_len
+                    >= ArgumentSInt16.data_payload_numbase_length()
+                ):
+                    return ArgumentSInt16.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentSInt8.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 16 bit signed integer {more_than_args_data} "
+                        "is not enough, handle it as 8 bit signed integer."
+                    )
+                    return ArgumentSInt8.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                else:
+                    raise ValueError(
+                        "There is no data for 16 bit signed integer "
+                        f"TypeInfo: {bin(type_info)}"
+                    )
+            elif type_info_length == TypeInfo.TYPE_LENGTH_8BIT:
+                if (
+                    more_than_args_data_len
+                    >= ArgumentSInt8.data_payload_numbase_length()
+                ):
+                    return ArgumentSInt8.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                else:
+                    raise ValueError(
+                        "There is no data for 8 bit signed integer "
+                        f"TypeInfo: {bin(type_info)}"
+                    )
         elif type_info_base == TypeInfo.TYPE_UNSIGNED:
             type_info_length = type_info & MASK_TYPE_LENGTH
-            if type_info_length == TypeInfo.TYPE_LENGTH_8BIT:
-                return ArgumentUInt8.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], msb_first
-                )
-            elif type_info_length == TypeInfo.TYPE_LENGTH_16BIT:
-                return ArgumentUInt16.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], msb_first
-                )
+            if type_info_length == TypeInfo.TYPE_LENGTH_64BIT:
+                if (
+                    more_than_args_data_len
+                    >= ArgumentUInt64.data_payload_numbase_length()
+                ):
+                    return ArgumentUInt64.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentUInt32.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 64 bit unsigned integer (${more_than_args_data}) "
+                        "is not enough, handle it as 32 bit unsigned integer."
+                    )
+                    return ArgumentUInt32.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentUInt16.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 64 bit unsigned integer (${more_than_args_data}) "
+                        "is not enough, handle it as 16 bit unsigned integer."
+                    )
+                    return ArgumentUInt16.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentUInt8.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 64 bit unsigned integer (${more_than_args_data}) "
+                        "is not enough, handle it as 8 bit unsigned integer."
+                    )
+                    return ArgumentUInt8.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                else:
+                    raise ValueError(
+                        "There is no data for 64 bit unsigned integer "
+                        f"TypeInfo: {bin(type_info)}"
+                    )
             elif type_info_length == TypeInfo.TYPE_LENGTH_32BIT:
-                return ArgumentUInt32.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], msb_first
-                )
-            elif type_info_length == TypeInfo.TYPE_LENGTH_64BIT:
-                return ArgumentUInt64.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], msb_first
-                )
+                if (
+                    more_than_args_data_len
+                    >= ArgumentUInt32.data_payload_numbase_length()
+                ):
+                    return ArgumentUInt32.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentUInt16.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 32 bit unsigned integer (${more_than_args_data}) "
+                        "is not enough, handle it as 16 bit unsigned integer."
+                    )
+                    return ArgumentUInt16.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentUInt8.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 32 bit unsigned integer (${more_than_args_data}) "
+                        "is not enough, handle it as 8 bit unsigned integer."
+                    )
+                    return ArgumentUInt8.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                else:
+                    raise ValueError(
+                        "There is no data for 32 bit unsigned integer "
+                        f"TypeInfo: {bin(type_info)}"
+                    )
+            elif type_info_length == TypeInfo.TYPE_LENGTH_16BIT:
+                if (
+                    more_than_args_data_len
+                    >= ArgumentUInt16.data_payload_numbase_length()
+                ):
+                    return ArgumentUInt16.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                elif (
+                    more_than_args_data_len
+                    >= ArgumentUInt8.data_payload_numbase_length()
+                ):
+                    warnings.warn(
+                        f"the data of 16 bit unsigned integer (${more_than_args_data}) "
+                        "is not enough, handle it as 8 bit unsigned integer."
+                    )
+                    return ArgumentUInt8.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                else:
+                    raise ValueError(
+                        "There is no data for 16 bit unsigned integer "
+                        f"TypeInfo: {bin(type_info)}"
+                    )
+            elif type_info_length == TypeInfo.TYPE_LENGTH_8BIT:
+                if (
+                    more_than_args_data_len
+                    >= ArgumentUInt8.data_payload_numbase_length()
+                ):
+                    return ArgumentUInt8.from_data_payload(
+                        more_than_args_data, msb_first
+                    )
+                else:
+                    raise ValueError(
+                        "There is no data for 8 bit unsigned integer "
+                        f"TypeInfo: {bin(type_info)}"
+                    )
         elif type_info_base == TypeInfo.TYPE_FLOAT:
             type_info_length = type_info & MASK_TYPE_LENGTH
             if type_info_length == TypeInfo.TYPE_LENGTH_32BIT:
-                return ArgumentFloat32.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], msb_first
-                )
+                return ArgumentFloat32.from_data_payload(more_than_args_data, msb_first)
             elif type_info_length == TypeInfo.TYPE_LENGTH_64BIT:
-                return ArgumentFloat64.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], msb_first
-                )
+                return ArgumentFloat64.from_data_payload(more_than_args_data, msb_first)
         elif type_info_base == TypeInfo.TYPE_STRING:
             type_info_string_coding = type_info & MASK_STRING_CODING
             if type_info_string_coding == TypeInfo.STRING_CODING_ASCII:
                 return ArgumentString.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], False, msb_first, encoding
+                    more_than_args_data, False, msb_first, encoding
                 )
             elif type_info_string_coding == TypeInfo.STRING_CODING_UTF8:
                 return ArgumentString.from_data_payload(
-                    data[cls._TYPE_INFO_LENGTH :], True, msb_first
+                    more_than_args_data, True, msb_first
                 )
         elif type_info_base == TypeInfo.TYPE_RAW:
-            return ArgumentRaw.from_data_payload(
-                data[cls._TYPE_INFO_LENGTH :], msb_first
-            )
+            return ArgumentRaw.from_data_payload(more_than_args_data, msb_first)
 
         raise ValueError(f"Unsupported TypeInfo: {bin(type_info)}")
 
@@ -470,7 +669,7 @@ class ArgumentNumBase(Argument):
 
     @staticmethod
     @abstractmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         raise NotImplementedError
 
     @classmethod
@@ -479,7 +678,7 @@ class ArgumentNumBase(Argument):
         return cls(
             struct.unpack(
                 f"{endian}{cls._struct_format()}",
-                data_payload[: cls._data_payload_length()],
+                data_payload[: cls.data_payload_numbase_length()],
             )[0],
             msb_first,
         )
@@ -506,12 +705,12 @@ class ArgumentBool(ArgumentNumBase):
         return "?"
 
     @staticmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         return 1
 
     @property
     def data_payload_length(self) -> int:
-        return self._data_payload_length()
+        return self.data_payload_numbase_length()
 
 
 class ArgumentUInt8(ArgumentNumBase):
@@ -524,12 +723,12 @@ class ArgumentUInt8(ArgumentNumBase):
         return "B"
 
     @staticmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         return 1
 
     @property
     def data_payload_length(self) -> int:
-        return self._data_payload_length()
+        return self.data_payload_numbase_length()
 
 
 class ArgumentUInt16(ArgumentNumBase):
@@ -542,12 +741,12 @@ class ArgumentUInt16(ArgumentNumBase):
         return "H"
 
     @staticmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         return 2
 
     @property
     def data_payload_length(self) -> int:
-        return self._data_payload_length()
+        return self.data_payload_numbase_length()
 
 
 class ArgumentUInt32(ArgumentNumBase):
@@ -560,12 +759,12 @@ class ArgumentUInt32(ArgumentNumBase):
         return "I"
 
     @staticmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         return 4
 
     @property
     def data_payload_length(self) -> int:
-        return self._data_payload_length()
+        return self.data_payload_numbase_length()
 
 
 class ArgumentUInt64(ArgumentNumBase):
@@ -578,12 +777,12 @@ class ArgumentUInt64(ArgumentNumBase):
         return "Q"
 
     @staticmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         return 8
 
     @property
     def data_payload_length(self) -> int:
-        return self._data_payload_length()
+        return self.data_payload_numbase_length()
 
 
 class ArgumentSInt8(ArgumentNumBase):
@@ -596,12 +795,12 @@ class ArgumentSInt8(ArgumentNumBase):
         return "b"
 
     @staticmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         return 1
 
     @property
     def data_payload_length(self) -> int:
-        return self._data_payload_length()
+        return self.data_payload_numbase_length()
 
 
 class ArgumentSInt16(ArgumentNumBase):
@@ -614,12 +813,12 @@ class ArgumentSInt16(ArgumentNumBase):
         return "h"
 
     @staticmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         return 2
 
     @property
     def data_payload_length(self) -> int:
-        return self._data_payload_length()
+        return self.data_payload_numbase_length()
 
 
 class ArgumentSInt32(ArgumentNumBase):
@@ -632,12 +831,12 @@ class ArgumentSInt32(ArgumentNumBase):
         return "i"
 
     @staticmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         return 4
 
     @property
     def data_payload_length(self) -> int:
-        return self._data_payload_length()
+        return self.data_payload_numbase_length()
 
 
 class ArgumentSInt64(ArgumentNumBase):
@@ -650,12 +849,12 @@ class ArgumentSInt64(ArgumentNumBase):
         return "q"
 
     @staticmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         return 8
 
     @property
     def data_payload_length(self) -> int:
-        return self._data_payload_length()
+        return self.data_payload_numbase_length()
 
 
 class ArgumentFloat32(ArgumentNumBase):
@@ -668,12 +867,12 @@ class ArgumentFloat32(ArgumentNumBase):
         return "f"
 
     @staticmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         return 4
 
     @property
     def data_payload_length(self) -> int:
-        return self._data_payload_length()
+        return self.data_payload_numbase_length()
 
 
 class ArgumentFloat64(ArgumentNumBase):
@@ -686,12 +885,12 @@ class ArgumentFloat64(ArgumentNumBase):
         return "d"
 
     @staticmethod
-    def _data_payload_length() -> int:
+    def data_payload_numbase_length() -> int:
         return 8
 
     @property
     def data_payload_length(self) -> int:
-        return self._data_payload_length()
+        return self.data_payload_numbase_length()
 
 
 class ArgumentByteBase(Argument):
