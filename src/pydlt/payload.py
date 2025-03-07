@@ -551,24 +551,6 @@ class Argument(ABC):
 
         raise ValueError(f"Unsupported TypeInfo: {bin(type_info)}")
 
-    @classmethod
-    @abstractmethod
-    def from_data_payload(cls, data_payload: bytes, msb_first: bool) -> "Argument":
-        """Create Argument object from data payload bytes.
-
-        Args:
-            data_payload (bytes): Data payload bytes (without type info)
-            msb_first (bool): If set, the payload data is in big endian format,
-                              else in little endian format.
-
-        Raises:
-            ValueError: It can be caused by invalid data format.
-
-        Returns:
-            Argument: New Argument object
-        """
-        raise NotImplementedError
-
     def to_bytes(self, msb_first: Optional[bool] = None) -> bytes:
         """Convert to data bytes.
 
@@ -673,7 +655,22 @@ class ArgumentNumBase(Argument):
         raise NotImplementedError
 
     @classmethod
-    def from_data_payload(cls, data_payload: bytes, msb_first: bool) -> "Argument":
+    def from_data_payload(
+        cls, data_payload: bytes, msb_first: bool
+    ) -> "ArgumentNumBase":
+        """Create Argument object from data payload bytes.
+
+        Args:
+            data_payload (bytes): Data payload bytes (without type info)
+            msb_first (bool): If set, the payload data is in big endian format,
+                              else in little endian format.
+
+        Raises:
+            ValueError: It can be caused by invalid data format.
+
+        Returns:
+            Argument: New Argument object
+        """
         endian = ">" if msb_first else "<"
         return cls(
             struct.unpack(
@@ -966,7 +963,21 @@ class ArgumentString(ArgumentByteBase):
         is_utf8: bool,
         msb_first: bool,
         encoding: Optional[str] = None,
-    ) -> "Argument":
+    ) -> "ArgumentString":
+        """Create Argument object from data payload bytes.
+
+        Args:
+            data_payload (bytes): Data payload bytes (without type info)
+            is_utf8 (bool): If set, the encoding of the string is UTF-8, else ASCII.
+            msb_first (bool): If set, the payload data is in big endian format,
+                              else in little endian format.
+
+        Raises:
+            ValueError: It can be caused by invalid data format.
+
+        Returns:
+            Argument: New Argument object
+        """
         endian = ">" if msb_first else "<"
         length = struct.unpack(f"{endian}H", data_payload[: cls.LENGTH_SIZE])[0]
         encoding_format = cls._encoding_format(is_utf8, encoding)
@@ -1010,7 +1021,20 @@ class ArgumentRaw(ArgumentByteBase):
         return TypeInfo.TYPE_RAW
 
     @classmethod
-    def from_data_payload(cls, data_payload: bytes, msb_first: bool) -> "Argument":
+    def from_data_payload(cls, data_payload: bytes, msb_first: bool) -> "ArgumentRaw":
+        """Create Argument object from data payload bytes.
+
+        Args:
+            data_payload (bytes): Data payload bytes (without type info)
+            msb_first (bool): If set, the payload data is in big endian format,
+                              else in little endian format.
+
+        Raises:
+            ValueError: It can be caused by invalid data format.
+
+        Returns:
+            Argument: New Argument object
+        """
         endian = ">" if msb_first else "<"
         length = struct.unpack(f"{endian}H", data_payload[: cls.LENGTH_SIZE])[0]
         return cls(data_payload[cls.LENGTH_SIZE : cls.LENGTH_SIZE + length], msb_first)
